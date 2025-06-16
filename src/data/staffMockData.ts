@@ -1,3 +1,4 @@
+
 export interface MockPatient {
   id: string;
   name: string;
@@ -55,7 +56,7 @@ export interface MockAppointment {
   date: string;
   time: string;
   service: string;
-  status: string;
+  status: 'booked' | 'confirmed' | 'completed' | 'cancelled' | 'no_show' | 'scheduled';
   customerName: string;
   customerPhone: string;
   branch: string;
@@ -72,6 +73,7 @@ export interface MockAppointment {
   customer_id: string;
   doctor_id: string;
   created_at: string;
+  cost?: number;
 }
 
 export interface MockDoctor {
@@ -94,6 +96,17 @@ export interface MockClaim {
   amount: number;
   status: string;
   date: string;
+  customer_id: string;
+  claim_amount: number;
+  submitted_date: string;
+  external_ref: string;
+  customer_name: string;
+  insurance_provider: string;
+  service_type: string;
+  treatment_date: string;
+  diagnosis: string;
+  notes: string;
+  created_at: string;
 }
 
 export interface MockFollowUp {
@@ -103,6 +116,13 @@ export interface MockFollowUp {
   date: string;
   notes: string;
   status: string;
+  customer_name: string;
+  staff_name: string;
+  note: string;
+  method: 'phone' | 'line' | 'email' | 'visit';
+  result: 'contacted' | 'no_answer' | 'interested' | 'not_interested' | 'scheduled';
+  next_follow_date?: string;
+  created_at: string;
 }
 
 export interface MockTreatment {
@@ -111,6 +131,12 @@ export interface MockTreatment {
   treatment: string;
   date: string;
   doctor: string;
+  customer_id: string;
+  service_name: string;
+  doctor_name: string;
+  treatment_date: string;
+  notes?: string;
+  status: string;
 }
 
 export interface MockInvoice {
@@ -119,6 +145,7 @@ export interface MockInvoice {
   amount: number;
   date: string;
   status: string;
+  customer_id: string;
 }
 
 export const mockPatients: MockPatient[] = [
@@ -198,7 +225,8 @@ export const mockAppointments: MockAppointment[] = [
     external_ref: 'EXT001',
     customer_id: 'P001',
     doctor_id: 'D001',
-    created_at: '2024-01-01'
+    created_at: '2024-01-01',
+    cost: 2500
   }
 ];
 
@@ -226,7 +254,18 @@ export const mockClaims: MockClaim[] = [
     claimType: 'ประกันสุขภาพ',
     amount: 1500,
     status: 'approved',
-    date: '2024-01-15'
+    date: '2024-01-15',
+    customer_id: 'P001',
+    claim_amount: 1500,
+    submitted_date: '2024-01-15',
+    external_ref: 'CLM001',
+    customer_name: 'สมชาย รักดี',
+    insurance_provider: 'บริษัทประกันสุขภาพ ABC',
+    service_type: 'ตรวจสายตาทั่วไป',
+    treatment_date: '2024-01-15',
+    diagnosis: 'สายตาสั้น',
+    notes: 'ผู้ป่วยต้องการใช้ประกันเคลม',
+    created_at: '2024-01-15'
   }
 ];
 
@@ -237,7 +276,14 @@ export const mockFollowUps: MockFollowUp[] = [
     type: 'ตรวจตาม',
     date: '2024-01-20',
     notes: 'ตรวจตามผลการรักษา',
-    status: 'pending'
+    status: 'pending',
+    customer_name: 'สมชาย รักดี',
+    staff_name: 'นพ.วิชัย ใสใจ',
+    note: 'ตรวจตามผลการรักษา',
+    method: 'phone',
+    result: 'contacted',
+    next_follow_date: '2024-01-25',
+    created_at: '2024-01-20'
   }
 ];
 
@@ -247,7 +293,13 @@ export const mockTreatments: MockTreatment[] = [
     patientName: 'สมชาย รักดี',
     treatment: 'ตรวจสายตา',
     date: '2024-01-15',
-    doctor: 'นพ.วิชัย ใสใจ'
+    doctor: 'นพ.วิชัย ใสใจ',
+    customer_id: 'P001',
+    service_name: 'ตรวจสายตา',
+    doctor_name: 'นพ.วิชัย ใสใจ',
+    treatment_date: '2024-01-15',
+    notes: 'ผู้ป่วยมีอาการสายตาสั้น',
+    status: 'completed'
   }
 ];
 
@@ -257,6 +309,7 @@ export const mockInvoices: MockInvoice[] = [
     patientName: 'สมชาย รักดี',
     amount: 1500,
     date: '2024-01-15',
-    status: 'paid'
+    status: 'paid',
+    customer_id: 'P001'
   }
 ];

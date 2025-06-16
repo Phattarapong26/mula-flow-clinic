@@ -38,8 +38,9 @@ const FeedbackRatings = () => {
 
   const loadBranches = async () => {
     try {
-      const response = await httpClient.get<{ data: { id: string; name: string }[] }>('/api/branches');
-      setBranches(response.data.data || []);
+      const response = await httpClient.get<{ id: string; name: string }[]>('/api/branches');
+      // Handle both direct array and wrapped response
+      setBranches(Array.isArray(response.data) ? response.data : response.data?.data || []);
     } catch (error) {
       console.error('Failed to load branches:', error);
     }
@@ -49,8 +50,9 @@ const FeedbackRatings = () => {
     try {
       setLoading(true);
       const params = selectedBranch !== 'all' ? { branchId: selectedBranch } : {};
-      const response = await httpClient.get<{ data: FeedbackRating[] }>('/api/feedback/ratings', { params });
-      setRatings(response.data.data || []);
+      const response = await httpClient.get<FeedbackRating[]>('/api/feedback/ratings', { params });
+      // Handle both direct array and wrapped response
+      setRatings(Array.isArray(response.data) ? response.data : response.data?.data || []);
     } catch (error) {
       console.error('Failed to load ratings:', error);
       toast({
@@ -67,6 +69,7 @@ const FeedbackRatings = () => {
     try {
       const params = selectedBranch !== 'all' ? { branchId: selectedBranch } : {};
       const response = await httpClient.get<RatingStats>('/api/feedback/stats', { params });
+      // Handle direct object response
       setStats(response.data);
     } catch (error) {
       console.error('Failed to load stats:', error);
