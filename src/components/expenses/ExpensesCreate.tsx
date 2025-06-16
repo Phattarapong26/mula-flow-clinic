@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,13 +9,7 @@ import { httpClient } from '@/utils/httpClient';
 import { Package2, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 
-const expenseCreateSchema = z.object({
-  category: z.string().min(1, 'กรุณาเลือกหมวดหมู่'),
-  expenseType: z.string().min(1, 'กรุณาระบุประเภทค่าใช้จ่าย'),
-  amount: z.number().min(0.01, 'จำนวนเงินต้องมากกว่า 0'),
-  description: z.string().min(1, 'กรุณาระบุรายละเอียด'),
-  branchId: z.string().min(1, 'กรุณาเลือกสาขา')
-});
+const expenseCreateSchema = expenseSchemas.create;
 
 type ExpenseFormData = z.infer<typeof expenseCreateSchema>;
 
@@ -74,8 +67,10 @@ const ExpensesCreate = () => {
 
   const loadBranches = async () => {
     try {
-      const response = await httpClient.get<{ data: { id: string; name: string }[] }>('/api/branches');
-      setBranches(response.data.data || []);
+      const response = await httpClient.get<{ id: string; name: string }[]>('/api/branches');
+      // Handle both direct array and wrapped response
+      const branchData = Array.isArray(response) ? response : (response as any)?.data || [];
+      setBranches(branchData);
     } catch (error) {
       console.error('Failed to load branches:', error);
     }

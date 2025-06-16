@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, User, MapPin, Loader2, AlertCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { mockAppointments, MockAppointment } from '@/data/staffMockData';
+import { httpClient } from '@/utils/httpClient';
 import DOMPurify from 'dompurify';
 import { z } from 'zod';
 
-// Use MockAppointment as the main interface
+// Use MockAppointment as the main interface for now
 interface Appointment extends MockAppointment {}
 
 const appointmentSchema = z.object({
@@ -35,11 +37,19 @@ const StaffAppointments = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      // Simulate API call - in real app this would be: await appointmentService.getStaffAppointments(selectedDate);
-      const filteredAppointments = mockAppointments.filter(apt => 
-        apt.date === selectedDate || apt.appointment_date === selectedDate
-      );
-      setAppointments(filteredAppointments);
+      // Try to fetch from API, fallback to mock data
+      try {
+        const response = await httpClient.get<Appointment[]>('/api/appointments', {
+          params: { date: selectedDate }
+        });
+        setAppointments(Array.isArray(response) ? response : []);
+      } catch (apiError) {
+        // Fallback to mock data for now
+        const filteredAppointments = mockAppointments.filter(apt => 
+          apt.date === selectedDate || apt.appointment_date === selectedDate
+        );
+        setAppointments(filteredAppointments);
+      }
       setError(null);
     } catch (err) {
       setError('Failed to fetch appointments');
@@ -54,7 +64,7 @@ const StaffAppointments = () => {
 
   const handleStatusUpdate = async (appointmentId: string, newStatus: Appointment['status']) => {
     try {
-      // Simulate API call - in real app: await appointmentService.updateAppointmentStatus(appointmentId, newStatus);
+      await httpClient.patch(`/api/appointments/${appointmentId}`, { status: newStatus });
       setAppointments(prev => prev.map(apt => 
         apt.id === appointmentId ? { ...apt, status: newStatus } : apt
       ));
@@ -130,99 +140,126 @@ const StaffAppointments = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {appointments.map((appointment) => (
-          <Card key={appointment.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-                    <User className="h-5 w-5" />
+      {loading && (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {error && (
+        <div className="text-center py-8">
+          <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Appointments</h3>
+          <p className="text-gray-600">{error}</p>
+          <Button onClick={fetchAppointments} className="mt-4">
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {!loading && !error && appointments.length === 0 && (
+        <div className="text-center py-8">
+          <CalendarIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Appointments Found</h3>
+          <p className="text-gray-600">There are no appointments scheduled for this date.</p>
+        </div>
+      )}
+
+      {!loading && !error && appointments.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {appointments.map((appointment) => (
+            <Card key={appointment.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-lg">
+                      {DOMPurify.sanitize(appointment.customerName)}
+                    </CardTitle>
                   </div>
-                  <CardTitle className="text-lg">
-                    {DOMPurify.sanitize(appointment.customerName)}
-                  </CardTitle>
+                  <Badge className={getStatusColor(appointment.status)}>
+                    {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                  </Badge>
                 </div>
-                <Badge className={getStatusColor(appointment.status)}>
-                  {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="text-base font-medium">
+                        {DOMPurify.sanitize(appointment.customerPhone)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Service</p>
+                      <p className="text-base font-medium">
+                        {DOMPurify.sanitize(appointment.service)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Date</p>
+                      <p className="text-base font-medium">
+                        {new Date(appointment.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Time</p>
+                      <p className="text-base font-medium">{appointment.time}</p>
+                    </div>
+                  </div>
+
                   <div>
-                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="text-sm text-gray-600">Branch</p>
                     <p className="text-base font-medium">
-                      {DOMPurify.sanitize(appointment.customerPhone)}
+                      {DOMPurify.sanitize(appointment.branch)}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Service</p>
-                    <p className="text-base font-medium">
-                      {DOMPurify.sanitize(appointment.service)}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Date</p>
-                    <p className="text-base font-medium">
-                      {new Date(appointment.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Time</p>
-                    <p className="text-base font-medium">{appointment.time}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-600">Branch</p>
-                  <p className="text-base font-medium">
-                    {DOMPurify.sanitize(appointment.branch)}
-                  </p>
-                </div>
-
-                {appointment.notes && (
-                  <div>
-                    <p className="text-sm text-gray-600">Notes</p>
-                    <p className="text-base font-medium">
-                      {DOMPurify.sanitize(appointment.notes)}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-4">
-                  {appointment.status === 'scheduled' && (
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleStatusUpdate(appointment.id, 'completed')}
-                      >
-                        Mark Complete
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleStatusUpdate(appointment.id, 'cancelled')}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleStatusUpdate(appointment.id, 'no_show')}
-                      >
-                        No Show
-                      </Button>
-                    </>
+                  {appointment.notes && (
+                    <div>
+                      <p className="text-sm text-gray-600">Notes</p>
+                      <p className="text-base font-medium">
+                        {DOMPurify.sanitize(appointment.notes)}
+                      </p>
+                    </div>
                   )}
+
+                  <div className="flex gap-2 pt-4">
+                    {appointment.status === 'scheduled' && (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleStatusUpdate(appointment.id, 'completed')}
+                        >
+                          Mark Complete
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleStatusUpdate(appointment.id, 'cancelled')}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleStatusUpdate(appointment.id, 'no_show')}
+                        >
+                          No Show
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
