@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,8 +38,8 @@ const FeedbackRatings = () => {
   const loadBranches = async () => {
     try {
       const response = await httpClient.get<{ id: string; name: string }[]>('/api/branches');
-      // Handle both direct array and wrapped response
-      setBranches(Array.isArray(response.data) ? response.data : response.data?.data || []);
+      // Fix: Handle direct array response properly
+      setBranches(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to load branches:', error);
     }
@@ -51,8 +50,8 @@ const FeedbackRatings = () => {
       setLoading(true);
       const params = selectedBranch !== 'all' ? { branchId: selectedBranch } : {};
       const response = await httpClient.get<FeedbackRating[]>('/api/feedback/ratings', { params });
-      // Handle both direct array and wrapped response
-      setRatings(Array.isArray(response.data) ? response.data : response.data?.data || []);
+      // Fix: Handle direct array response properly
+      setRatings(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to load ratings:', error);
       toast({
@@ -69,8 +68,8 @@ const FeedbackRatings = () => {
     try {
       const params = selectedBranch !== 'all' ? { branchId: selectedBranch } : {};
       const response = await httpClient.get<RatingStats>('/api/feedback/stats', { params });
-      // Handle direct object response
-      setStats(response.data);
+      // Fix: Handle direct object response properly
+      setStats(response.data || response);
     } catch (error) {
       console.error('Failed to load stats:', error);
     }

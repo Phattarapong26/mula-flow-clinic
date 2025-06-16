@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle, Eye, TrendingUp, Upload, Camera, Download } from 'lucide-react';
-import { mockClaims } from '@/data/staffMockData';
+import { mockClaims, MockClaim } from '@/data/staffMockData';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,14 +43,23 @@ const StaffClaimDashboard = () => {
       return;
     }
 
-    const claim = {
+    const claim: MockClaim = {
       id: `CL${Date.now()}`,
-      ...newClaim,
+      patientName: newClaim.customer_name,
+      claimType: 'ประกันสุขภาพ',
+      amount: parseFloat(newClaim.claim_amount),
+      status: 'submitted',
+      date: new Date().toISOString().split('T')[0],
       customer_id: newClaim.customer_name.replace(/\s+/g, '').toLowerCase(),
+      customer_name: newClaim.customer_name,
       claim_amount: parseFloat(newClaim.claim_amount),
-      status: 'submitted' as const,
       submitted_date: new Date().toISOString(),
       external_ref: `INS${Date.now()}`,
+      insurance_provider: newClaim.insurance_provider,
+      service_type: newClaim.service_type,
+      treatment_date: newClaim.treatment_date,
+      diagnosis: newClaim.diagnosis,
+      notes: newClaim.notes,
       created_at: new Date().toISOString()
     };
 
@@ -360,7 +369,7 @@ const StaffClaimDashboard = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
                       <div>
-                        <span className="font-medium">ผู้ป่วย:</span> {claim.customer_id}
+                        <span className="font-medium">ผู้ป่วย:</span> {claim.customer_name}
                       </div>
                       <div>
                         <span className="font-medium">บริษัทประกัน:</span> {claim.insurance_provider}
@@ -406,7 +415,7 @@ const StaffClaimDashboard = () => {
                         <DialogHeader>
                           <DialogTitle>ติดตามสถานะเคลม</DialogTitle>
                           <DialogDescription>
-                            เคลม {selectedClaim?.id} - {selectedClaim?.customer_id}
+                            เคลม {selectedClaim?.id} - {selectedClaim?.customer_name}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -419,7 +428,7 @@ const StaffClaimDashboard = () => {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
                                 <Label>ผู้ป่วย:</Label>
-                                <p className="font-medium">{selectedClaim?.customer_id}</p>
+                                <p className="font-medium">{selectedClaim?.customer_name}</p>
                               </div>
                               <div>
                                 <Label>บริษัทประกัน:</Label>

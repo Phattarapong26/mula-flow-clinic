@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar, Plus, Search, Clock, User, Phone, Eye, Edit, CheckCircle, Video, MessageSquare, Bell } from 'lucide-react';
-import { mockAppointments } from '@/data/staffMockData';
+import { mockAppointments, MockAppointment } from '@/data/staffMockData';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -68,12 +67,20 @@ const StaffAppointmentsList = () => {
       return;
     }
 
-    const appointment = {
+    const appointment: MockAppointment = {
       id: `APT${Date.now()}`,
+      patientName: newAppointment.customer_name,
+      doctorName: newAppointment.doctor_name,
+      date: newAppointment.appointment_date,
+      time: newAppointment.appointment_time,
+      service: newAppointment.service_type,
+      status: 'booked',
+      customerName: newAppointment.customer_name,
+      customerPhone: newAppointment.customer_phone,
+      branch: 'สาขาหลัก',
       customer_id: `CUS${Date.now()}`,
       doctor_id: `DOC${Date.now()}`,
       customer_name: newAppointment.customer_name,
-      customer_phone: newAppointment.customer_phone,
       doctor_name: newAppointment.doctor_name,
       service_type: newAppointment.service_type,
       type_name: newAppointment.service_type,
@@ -82,13 +89,12 @@ const StaffAppointmentsList = () => {
       scheduled_at: new Date(`${newAppointment.appointment_date}T${newAppointment.appointment_time}`).toISOString(),
       duration_minutes: newAppointment.duration_minutes,
       notes: newAppointment.notes,
-      status: 'booked' as const,
       external_ref: `APT${Date.now()}`,
       cost: 2500,
       created_at: new Date().toISOString()
     };
 
-    setAppointments([...appointments, appointment]);
+    setAppointments([appointment, ...appointments]);
     setNewAppointment({
       customer_name: '',
       customer_phone: '',

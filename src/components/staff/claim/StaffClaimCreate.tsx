@@ -66,8 +66,8 @@ const StaffClaimCreate = () => {
   const loadCustomers = async () => {
     try {
       const response = await httpClient.get<{ id: string; name: string }[]>('/api/customers');
-      // Handle both direct array and wrapped response
-      setCustomers(Array.isArray(response.data) ? response.data : response.data?.data || []);
+      // Fix: Handle direct array response properly
+      setCustomers(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to load customers:', error);
     }
@@ -76,8 +76,8 @@ const StaffClaimCreate = () => {
   const loadServices = async () => {
     try {
       const response = await httpClient.get<{ id: string; name: string; price: number }[]>('/api/services');
-      // Handle both direct array and wrapped response
-      setServices(Array.isArray(response.data) ? response.data : response.data?.data || []);
+      // Fix: Handle direct array response properly
+      setServices(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to load services:', error);
     }

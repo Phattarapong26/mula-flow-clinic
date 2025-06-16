@@ -122,6 +122,7 @@ export interface MockFollowUp {
   method: 'phone' | 'line' | 'email' | 'visit';
   result: 'contacted' | 'no_answer' | 'interested' | 'not_interested' | 'scheduled';
   next_follow_date?: string;
+  scheduled_date?: string;
   created_at: string;
 }
 
@@ -132,6 +133,7 @@ export interface MockTreatment {
   date: string;
   doctor: string;
   customer_id: string;
+  customer_name: string;
   service_name: string;
   doctor_name: string;
   treatment_date: string;
@@ -146,6 +148,12 @@ export interface MockInvoice {
   date: string;
   status: string;
   customer_id: string;
+  external_ref?: string;
+  payment_method_name?: string;
+  created_at?: string;
+  items?: Array<{ name: string; quantity: number; price: number }>;
+  total_amount?: number;
+  payment_status?: string;
 }
 
 export const mockPatients: MockPatient[] = [
@@ -283,6 +291,7 @@ export const mockFollowUps: MockFollowUp[] = [
     method: 'phone',
     result: 'contacted',
     next_follow_date: '2024-01-25',
+    scheduled_date: '2024-01-20',
     created_at: '2024-01-20'
   }
 ];
@@ -295,6 +304,7 @@ export const mockTreatments: MockTreatment[] = [
     date: '2024-01-15',
     doctor: 'นพ.วิชัย ใสใจ',
     customer_id: 'P001',
+    customer_name: 'สมชาย รักดี',
     service_name: 'ตรวจสายตา',
     doctor_name: 'นพ.วิชัย ใสใจ',
     treatment_date: '2024-01-15',
@@ -310,6 +320,14 @@ export const mockInvoices: MockInvoice[] = [
     amount: 1500,
     date: '2024-01-15',
     status: 'paid',
-    customer_id: 'P001'
+    customer_id: 'P001',
+    external_ref: 'INV001',
+    payment_method_name: 'เงินสด',
+    created_at: '2024-01-15',
+    items: [
+      { name: 'ตรวจสายตา', quantity: 1, price: 1500 }
+    ],
+    total_amount: 1500,
+    payment_status: 'paid'
   }
 ];
