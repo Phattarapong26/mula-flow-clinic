@@ -43,6 +43,11 @@ export function useForm<T>({ initialValues, validationSchema, onSubmit }: UseFor
     }
   };
 
+  const resetForm = () => {
+    setValues(initialValues);
+    setErrors({});
+  };
+
   const getFieldError = (field: keyof T) => {
     return errors[field as string] || '';
   };
@@ -53,6 +58,7 @@ export function useForm<T>({ initialValues, validationSchema, onSubmit }: UseFor
     isSubmitting,
     handleChange,
     handleSubmit,
-    getFieldError
+    getFieldError,
+    resetForm
   };
 }

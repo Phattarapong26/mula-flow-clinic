@@ -1,11 +1,11 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import { httpClient } from '@/utils/httpClient';
-import { sanitizeObject } from '@/utils/security';
-import { validateForm } from '@/utils/validation';
-import { loginSchema, registerSchema } from '@/utils/validation';
+import { security } from '@/utils/security';
+import { validateForm, loginSchema, registerSchema } from '@/utils/validation';
 
 // Define response types
 interface AuthResponse {
@@ -58,8 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuth = async () => {
     try {
-      const response = await httpClient.get<AuthResponse>('/auth/me', { requireAuth: true });
-      setUser(sanitizeObject(response.data.user));
+      const response = await httpClient.get<AuthResponse>('/auth/me');
+      setUser(security.sanitizeSensitiveData(response.data.user));
     } catch (error) {
       setUser(null);
     } finally {
@@ -69,18 +69,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const validationError = validateForm(loginSchema, { email, password });
-      if (validationError) {
-        throw new Error(validationError);
+      const validation = validateForm({ username: email, password }, loginSchema);
+      if (!validation.isValid) {
+        const errorMessage = Object.values(validation.errors)[0] || 'ข้อมูลไม่ถูกต้อง';
+        throw new Error(errorMessage);
       }
 
       const sanitizedEmail = DOMPurify.sanitize(email);
       const response = await httpClient.post<AuthResponse>('/auth/login', {
         email: sanitizedEmail,
         password
-      }, { requireAuth: false });
+      });
 
-      setUser(sanitizeObject(response.data.user));
+      setUser(security.sanitizeSensitiveData(response.data.user));
       navigate('/dashboard');
       toast.success('Login successful');
     } catch (error) {
@@ -91,9 +92,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string, confirmPassword: string) => {
     try {
-      const validationError = validateForm(registerSchema, { email, password, confirmPassword });
-      if (validationError) {
-        throw new Error(validationError);
+      const validation = validateForm({ email, password, confirmPassword }, registerSchema);
+      if (!validation.isValid) {
+        const errorMessage = Object.values(validation.errors)[0] || 'ข้อมูลไม่ถูกต้อง';
+        throw new Error(errorMessage);
       }
 
       const sanitizedEmail = DOMPurify.sanitize(email);
@@ -101,9 +103,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: sanitizedEmail,
         password,
         confirmPassword
-      }, { requireAuth: false });
+      });
 
-      setUser(sanitizeObject(response.data.user));
+      setUser(security.sanitizeSensitiveData(response.data.user));
       navigate('/dashboard');
       toast.success('Registration successful');
     } catch (error) {
@@ -114,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await httpClient.post('/auth/logout', {}, { requireAuth: true });
+      await httpClient.post('/auth/logout', {});
       setUser(null);
       navigate('/login');
       toast.success('Logged out successfully');
@@ -126,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshToken = async () => {
     try {
-      await httpClient.post<RefreshResponse>('/auth/refresh', {}, { requireAuth: false });
+      await httpClient.post<RefreshResponse>('/auth/refresh', {});
       // Token is automatically handled by httpClient
     } catch (error) {
       setUser(null);
