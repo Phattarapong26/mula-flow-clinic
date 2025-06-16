@@ -20,3 +20,6 @@ export const mockFeedbackData: FeedbackData[] = [
     branchName: 'สาขาหลัก'
   }
 ];
+
+// Export alias for compatibility
+export const feedbacks = mockFeedbackData;

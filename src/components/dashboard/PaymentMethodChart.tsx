@@ -5,6 +5,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { paymentMethodData } from '@/data/mockData';
 
+const COLORS = ['#3b82f6', '#22c55e', '#f59e0b'];
+
 const chartConfig = {
   amount: { label: 'จำนวนเงิน', color: '#3b82f6' },
 };
@@ -31,7 +33,7 @@ const PaymentMethodChart: React.FC = () => {
                   dataKey="amount"
                 >
                   {paymentMethodData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <ChartTooltip content={<ChartTooltipContent />} />
@@ -44,9 +46,9 @@ const PaymentMethodChart: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <div 
                     className="w-4 h-4 rounded-full" 
-                    style={{ backgroundColor: method.color }}
+                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
                   />
-                  <span className="text-sm font-medium">{method.method}</span>
+                  <span className="text-sm font-medium">{method.methodName}</span>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-bold">฿{method.amount.toLocaleString()}</div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,14 +41,65 @@ const FinancialKPIDashboard = () => {
     return `${value.toFixed(1)}%`;
   };
 
-  const netProfitData = financialAnalyticsService.calculateNetProfitByBranch([], [], []);
-  const grossMarginData = financialAnalyticsService.calculateGrossMarginPerService([], []);
-  const plData = financialAnalyticsService.generatePLStatement();
-  const expenseData = financialAnalyticsService.getExpenseBreakdown([]);
-  const doctorKPIs = financialAnalyticsService.calculateDoctorKPIs();
-  const branchEfficiency = financialAnalyticsService.calculateBranchEfficiency();
-  const customerMetrics = financialAnalyticsService.getCustomerMetrics();
-  const taxLiability = financialAnalyticsService.mockFinancialData.taxLiability;
+  // Mock data for now since service methods need to be async
+  const netProfitData = [
+    { branch: 'สาขาหลัก', revenue: 1500000, costs: 800000, expenses: 300000, net_profit: 400000, net_margin: '26.7%' },
+    { branch: 'สาขาดาวน์ทาวน์', revenue: 1200000, costs: 600000, expenses: 250000, net_profit: 350000, net_margin: '29.2%' }
+  ];
+
+  const grossMarginData = [
+    { service_name: 'ตรวจสายตาทั่วไป', total_sales: 450000, total_cost: 200000, gross_margin: 250000, margin_percentage: '55.6%' },
+    { service_name: 'ผ่าตัดต้อกระจก', total_sales: 800000, total_cost: 400000, gross_margin: 400000, margin_percentage: '50.0%' }
+  ];
+
+  const plData = [
+    { month: 'ม.ค.', revenue: 1500000, cost_of_sales: 800000, expenses: 300000, net_profit: 400000 },
+    { month: 'ก.พ.', revenue: 1600000, cost_of_sales: 850000, expenses: 320000, net_profit: 430000 }
+  ];
+
+  const expenseData = [
+    { category: 'เงินเดือนพนักงาน', total: 150000, percentage: 45 },
+    { category: 'ค่าเช่า', total: 80000, percentage: 24 },
+    { category: 'สาธารณูปโภค', total: 50000, percentage: 15 },
+    { category: 'อื่นๆ', total: 53000, percentage: 16 }
+  ];
+
+  const doctorKPIs = [
+    { 
+      doctor_name: 'นพ.วิชัย ใสใจ',
+      revenue_per_hour: 5000,
+      slot_utilization: 85,
+      average_ticket: 2500,
+      bonus: 15000,
+      kpi_score: 88,
+      efficiency_score: 92
+    }
+  ];
+
+  const branchEfficiency = [
+    {
+      branch_name: 'สาขาหลัก',
+      revenue_per_staff: 60000,
+      cost_per_staff: 35000,
+      profit_margin: 26.7,
+      efficiency_score: 85
+    }
+  ];
+
+  const customerMetrics = {
+    repeat_rate: 75.5,
+    churn_risk_count: 12,
+    aov: 2500,
+    cac: 800,
+    retention_rate: 82.3
+  };
+
+  const taxLiability = {
+    output_vat: 105000,
+    input_vat: 45000,
+    tax_payable: 60000,
+    period: 'มีนาคม 2024'
+  };
 
   const renderProfitAnalysis = () => (
     <div className="space-y-6">

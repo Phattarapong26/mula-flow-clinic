@@ -12,6 +12,17 @@ export interface MockPatient {
   medical_history?: string;
   allergies?: string;
   insurance_provider?: string;
+  address?: {
+    street: string;
+    district: string;
+    province: string;
+    postalCode: string;
+  };
+  emergency_contact?: {
+    name: string;
+    relationship: string;
+    phone: string;
+  };
 }
 
 export interface StaffMember {
@@ -22,7 +33,7 @@ export interface StaffMember {
   phone: string;
 }
 
-export interface ExtendedTask {
+export interface Task {
   id: string;
   title: string;
   description: string;
@@ -30,8 +41,71 @@ export interface ExtendedTask {
   status: 'pending' | 'in-progress' | 'completed';
   priority: 'low' | 'medium' | 'high';
   due_date: string;
-  category: string;
+  category: 'follow_up' | 'appointment' | 'inventory' | 'administrative';
   created_at: string;
+}
+
+export interface ExtendedTask extends Task {
+  updated_at: string;
+}
+
+export interface MockAppointment {
+  id: string;
+  patientName: string;
+  doctorName: string;
+  date: string;
+  time: string;
+  service: string;
+  status: string;
+  customerName: string;
+  customerPhone: string;
+  branch: string;
+}
+
+export interface MockDoctor {
+  id: string;
+  name: string;
+  specialization: string;
+}
+
+export interface MockService {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface MockClaim {
+  id: string;
+  patientName: string;
+  claimType: string;
+  amount: number;
+  status: string;
+  date: string;
+}
+
+export interface MockFollowUp {
+  id: string;
+  patientName: string;
+  type: string;
+  date: string;
+  notes: string;
+  status: string;
+}
+
+export interface MockTreatment {
+  id: string;
+  patientName: string;
+  treatment: string;
+  date: string;
+  doctor: string;
+}
+
+export interface MockInvoice {
+  id: string;
+  patientName: string;
+  amount: number;
+  date: string;
+  status: string;
 }
 
 export const mockPatients: MockPatient[] = [
@@ -47,7 +121,18 @@ export const mockPatients: MockPatient[] = [
     visual_acuity_left: '20/25',
     medical_history: 'เบาหวาน',
     allergies: 'ยาปฏิชีวนะ',
-    insurance_provider: 'บริษัทประกันสุขภาพ ABC'
+    insurance_provider: 'บริษัทประกันสุขภาพ ABC',
+    address: {
+      street: '123 หมู่ 1 ถนนสุขุมวิท',
+      district: 'วัฒนา',
+      province: 'กรุงเทพมหานคร',
+      postalCode: '10110'
+    },
+    emergency_contact: {
+      name: 'สุดา รักดี',
+      relationship: 'ภรรยา',
+      phone: '082-345-6789'
+    }
   }
 ];
 
@@ -70,7 +155,81 @@ export const mockTasks: ExtendedTask[] = [
     status: 'pending',
     priority: 'high',
     due_date: '2024-01-20',
-    category: 'maintenance',
-    created_at: '2024-01-15'
+    category: 'administrative',
+    created_at: '2024-01-15',
+    updated_at: '2024-01-15'
+  }
+];
+
+export const mockAppointments: MockAppointment[] = [
+  {
+    id: 'A001',
+    patientName: 'สมชาย รักดี',
+    doctorName: 'นพ.วิชัย ใสใจ',
+    date: '2024-01-15',
+    time: '09:00',
+    service: 'ตรวจสายตาทั่วไป',
+    status: 'confirmed',
+    customerName: 'สมชาย รักดี',
+    customerPhone: '081-234-5678',
+    branch: 'สาขาหลัก'
+  }
+];
+
+export const mockDoctors: MockDoctor[] = [
+  {
+    id: 'D001',
+    name: 'นพ.วิชัย ใสใจ',
+    specialization: 'จักษุแพทย์'
+  }
+];
+
+export const mockServices: MockService[] = [
+  {
+    id: 'S001',
+    name: 'ตรวจสายตาทั่วไป',
+    price: 1500
+  }
+];
+
+export const mockClaims: MockClaim[] = [
+  {
+    id: 'C001',
+    patientName: 'สมชาย รักดี',
+    claimType: 'ประกันสุขภาพ',
+    amount: 1500,
+    status: 'approved',
+    date: '2024-01-15'
+  }
+];
+
+export const mockFollowUps: MockFollowUp[] = [
+  {
+    id: 'F001',
+    patientName: 'สมชาย รักดี',
+    type: 'ตรวจตาม',
+    date: '2024-01-20',
+    notes: 'ตรวจตามผลการรักษา',
+    status: 'pending'
+  }
+];
+
+export const mockTreatments: MockTreatment[] = [
+  {
+    id: 'T001',
+    patientName: 'สมชาย รักดี',
+    treatment: 'ตรวจสายตา',
+    date: '2024-01-15',
+    doctor: 'นพ.วิชัย ใสใจ'
+  }
+];
+
+export const mockInvoices: MockInvoice[] = [
+  {
+    id: 'I001',
+    patientName: 'สมชาย รักดี',
+    amount: 1500,
+    date: '2024-01-15',
+    status: 'paid'
   }
 ];

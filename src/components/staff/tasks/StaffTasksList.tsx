@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,25 +13,12 @@ import { mockTasks, Task } from '@/data/staffMockData';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
-// Extend the Task interface to include created_at and updated_at
-interface ExtendedTask extends Task {
-  created_at: string;
-  updated_at: string;
-}
-
 const StaffTasksList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  // Use ExtendedTask type for tasks with created_at/updated_at
-  const [tasks, setTasks] = useState<ExtendedTask[]>(
-    mockTasks.map(task => ({
-      ...task,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }))
-  );
-  const [selectedTask, setSelectedTask] = useState<ExtendedTask | null>(null);
+  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -65,7 +53,7 @@ const StaffTasksList = () => {
       return;
     }
 
-    const task: ExtendedTask = {
+    const task: Task = {
       id: `TASK${Date.now()}`,
       title: newTask.title,
       description: newTask.description,
@@ -74,8 +62,7 @@ const StaffTasksList = () => {
       assigned_to: newTask.assigned_to,
       due_date: newTask.due_date,
       status: 'pending' as const,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_at: new Date().toISOString()
     };
 
     setTasks([...tasks, task]);
@@ -99,8 +86,7 @@ const StaffTasksList = () => {
     setTasks(tasks.map(task => 
       task.id === taskId ? { 
         ...task, 
-        status: newStatus,
-        updated_at: new Date().toISOString()
+        status: newStatus
       } : task
     ));
     
@@ -113,7 +99,7 @@ const StaffTasksList = () => {
   const getStatusBadge = (status: Task['status']) => {
     const variants = {
       pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
-      in_progress: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+      'in-progress': 'bg-blue-100 text-blue-800 hover:bg-blue-200',
       completed: 'bg-green-100 text-green-800 hover:bg-green-200'
     };
     return variants[status] || 'bg-gray-100 text-gray-800';
@@ -122,7 +108,7 @@ const StaffTasksList = () => {
   const getStatusText = (status: Task['status']) => {
     const labels = {
       pending: 'รอดำเนินการ',
-      in_progress: 'กำลังดำเนินการ',
+      'in-progress': 'กำลังดำเนินการ',
       completed: 'เสร็จสิ้น'
     };
     return labels[status] || status;
@@ -355,7 +341,7 @@ const StaffTasksList = () => {
               <SelectContent>
                 <SelectItem value="all">สถานะทั้งหมด</SelectItem>
                 <SelectItem value="pending">รอดำเนินการ</SelectItem>
-                <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
+                <SelectItem value="in-progress">กำลังดำเนินการ</SelectItem>
                 <SelectItem value="completed">เสร็จสิ้น</SelectItem>
               </SelectContent>
             </Select>
@@ -380,7 +366,7 @@ const StaffTasksList = () => {
                     <div className="flex items-center gap-3 mb-2">
                       {getCategoryIcon(task.category)}
                       <h3 className="font-semibold text-lg">{task.title}</h3>
-                      <Badge className={getStatusBadge(task.status)} onClick={() => handleUpdateStatus(task.id, task.status === 'pending' ? 'in_progress' : task.status === 'in_progress' ? 'completed' : 'pending')}>
+                      <Badge className={getStatusBadge(task.status)} onClick={() => handleUpdateStatus(task.id, task.status === 'pending' ? 'in-progress' : task.status === 'in-progress' ? 'completed' : 'pending')}>
                         {getStatusText(task.status)}
                       </Badge>
                       <Badge className={getPriorityBadge(task.priority)}>
@@ -485,14 +471,14 @@ const StaffTasksList = () => {
                       variant="outline" 
                       size="sm"
                       onClick={() => {
-                        const nextStatus = task.status === 'pending' ? 'in_progress' : 
-                                         task.status === 'in_progress' ? 'completed' : 'pending';
+                        const nextStatus = task.status === 'pending' ? 'in-progress' : 
+                                         task.status === 'in-progress' ? 'completed' : 'pending';
                         handleUpdateStatus(task.id, nextStatus);
                       }}
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
                       {task.status === 'pending' ? 'เริ่ม' : 
-                       task.status === 'in_progress' ? 'เสร็จ' : 'เปิด'}
+                       task.status === 'in-progress' ? 'เสร็จ' : 'เปิด'}
                     </Button>
                   </div>
                 </div>

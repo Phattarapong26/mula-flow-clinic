@@ -93,6 +93,20 @@ class HttpClient {
     }
   }
 
+  async patch<T>(url: string, data?: any, options?: RequestOptions): Promise<T> {
+    try {
+      const response = await axios.patch<T>(url, data, {
+        baseURL: this.baseURL,
+        timeout: this.timeout,
+        headers: this.getHeaders(),
+        ...options
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
+
   async delete<T>(url: string, options?: RequestOptions): Promise<T> {
     try {
       const response = await axios.delete<T>(url, {
