@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Cell, Pie } from 'recharts';
 import { revenueSchemas } from '@/utils/validation';
 import useApi from '@/hooks/useApi';
-import useForm from '@/hooks/useForm';
+import { useForm } from '@/hooks/useForm';
 import { z } from 'zod';
 
 // Validation schemas

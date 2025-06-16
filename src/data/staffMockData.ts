@@ -1,4 +1,5 @@
 
+
 // Temporary mock data for components that haven't been fully migrated yet
 export interface MockAppointment {
   id: string;
@@ -61,10 +62,17 @@ export interface MockClaim {
 export interface MockFollowup {
   id: string;
   customerName: string;
+  customer_name?: string;
   type: string;
   status: 'pending' | 'completed' | 'cancelled';
   dueDate: string;
   notes?: string;
+  staff_name?: string;
+  note?: string;
+  method?: string;
+  result?: string;
+  next_follow_date?: string;
+  created_at?: string;
 }
 
 export interface MockDoctor {
@@ -78,25 +86,37 @@ export interface MockService {
   id: string;
   name: string;
   duration: number;
+  duration_minutes?: number;
   price: number;
 }
 
 export interface MockTreatment {
   id: string;
   patientId: string;
+  customer_id?: string;
   doctorId: string;
   serviceId: string;
   date: string;
+  treatment_date?: string;
   status: string;
   notes?: string;
+  service_name?: string;
+  doctor_name?: string;
 }
 
 export interface MockInvoice {
   id: string;
   patientId: string;
+  customer_id?: string;
   amount: number;
+  total_amount?: number;
   status: string;
+  payment_status?: string;
   date: string;
+  created_at?: string;
+  external_ref?: string;
+  payment_method_name?: string;
+  items?: any[];
 }
 
 export interface Task {
@@ -106,6 +126,11 @@ export interface Task {
   status: 'pending' | 'completed' | 'cancelled';
   dueDate: string;
   assignee?: string;
+  category?: 'follow_up' | 'appointment' | 'inventory' | 'administrative';
+  priority?: 'low' | 'medium' | 'high';
+  assigned_to?: string;
+  due_date?: string;
+  created_at?: string;
 }
 
 // Empty arrays for now - components should migrate to real API calls
@@ -119,3 +144,4 @@ export const mockServices: MockService[] = [];
 export const mockTreatments: MockTreatment[] = [];
 export const mockInvoices: MockInvoice[] = [];
 export const mockTasks: Task[] = [];
+

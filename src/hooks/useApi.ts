@@ -1,117 +1,105 @@
-import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import apiService from '@/services/api';
-import { security } from '@/utils/security';
 
-interface UseApiOptions<T> {
-  onSuccess?: (data: T) => void;
-  onError?: (error: Error) => void;
+import { useState } from 'react';
+import { httpClient } from '@/utils/httpClient';
+import { useToast } from '@/hooks/use-toast';
+
+interface UseApiOptions {
   showToast?: boolean;
   sanitizeResponse?: boolean;
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
 }
 
-export function useApi<T = any>() {
+export function useApi<T>() {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
 
-  const execute = useCallback(async <R = T>(
-    method: 'get' | 'post' | 'put' | 'delete',
-    url: string,
-    options: UseApiOptions<R> = {},
-    params?: any
-  ) => {
-    const {
-      onSuccess,
-      onError,
-      showToast = true,
-      sanitizeResponse = true
-    } = options;
-
+  const get = async (url: string, options: UseApiOptions = {}, params?: any) => {
     try {
       setLoading(true);
       setError(null);
-
-      let response: R;
-      switch (method) {
-        case 'get':
-          response = await apiService.get<R>(url, params);
-          break;
-        case 'post':
-          response = await apiService.post<R>(url, params);
-          break;
-        case 'put':
-          response = await apiService.put<R>(url, params);
-          break;
-        case 'delete':
-          response = await apiService.delete<R>(url);
-          break;
-        default:
-          throw new Error('Invalid method');
-      }
-
-      // Sanitize response if needed
-      const sanitizedResponse = sanitizeResponse ? security.sanitizeSensitiveData(response) : response;
+      const response = await httpClient.get<T>(url, { params });
+      setData(response.data || response);
       
-      // Type assertion to unknown first to avoid type mismatch
-      setData(sanitizedResponse as unknown as T);
-      onSuccess?.(sanitizedResponse);
-
-      if (showToast) {
+      if (options.onSuccess) {
+        options.onSuccess();
+      }
+      
+      if (options.showToast) {
         toast({
           title: 'Success',
-          description: 'Operation completed successfully',
+          description: 'Data loaded successfully'
         });
       }
-
-      return sanitizedResponse;
+      
+      return response;
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('An error occurred');
+      const error = err as Error;
       setError(error);
-      onError?.(error);
-
-      if (showToast) {
+      
+      if (options.onError) {
+        options.onError(error);
+      } else {
         toast({
           title: 'Error',
           description: error.message,
-          variant: 'destructive',
+          variant: 'destructive'
         });
       }
-
+      
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  };
 
-  const get = useCallback(<R = T>(url: string, options?: UseApiOptions<R>, params?: any) => {
-    return execute<R>('get', url, options, params);
-  }, [execute]);
-
-  const post = useCallback(<R = T>(url: string, data: any, options?: UseApiOptions<R>) => {
-    return execute<R>('post', url, options, data);
-  }, [execute]);
-
-  const put = useCallback(<R = T>(url: string, data: any, options?: UseApiOptions<R>) => {
-    return execute<R>('put', url, options, data);
-  }, [execute]);
-
-  const del = useCallback(<R = T>(url: string, options?: UseApiOptions<R>) => {
-    return execute<R>('delete', url, options);
-  }, [execute]);
+  const post = async (url: string, data: any, options: UseApiOptions = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await httpClient.post<T>(url, data);
+      
+      if (options.onSuccess) {
+        options.onSuccess();
+      }
+      
+      if (options.showToast) {
+        toast({
+          title: 'Success',
+          description: 'Operation completed successfully'
+        });
+      }
+      
+      return response;
+    } catch (err) {
+      const error = err as Error;
+      setError(error);
+      
+      if (options.onError) {
+        options.onError(error);
+      } else {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive'
+        });
+      }
+      
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     data,
     loading,
     error,
     get,
-    post,
-    put,
-    delete: del,
-    setData,
-    setError,
+    post
   };
 }
 
-export default useApi; 
+export default useApi;

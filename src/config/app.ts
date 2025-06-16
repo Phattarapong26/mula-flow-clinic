@@ -1,21 +1,22 @@
 
-export const config = {
+const config = {
   api: {
-    baseURL: process.env.REACT_APP_API_URL || '/api',
-    timeout: 10000,
-  },
-  security: {
-    sanitizeResponses: true,
-    enableCSP: true,
-    jwtExpiration: 3600000, // 1 hour
+    baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:3000',
+    timeout: 30000
   },
   errors: {
-    default: 'เกิดข้อผิดพลาดที่ไม่คาดคิด',
+    default: 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ',
+    validation: 'ข้อมูลไม่ถูกต้อง',
     network: 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
     unauthorized: 'ไม่มีสิทธิ์เข้าถึง',
-    server: 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์',
-    validation: 'ข้อมูลไม่ถูกต้อง',
+    forbidden: 'ไม่อนุญาตให้เข้าถึง',
+    notFound: 'ไม่พบข้อมูลที่ต้องการ'
   },
-} as const;
+  ui: {
+    itemsPerPage: 10,
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
+  }
+};
 
 export default config;
