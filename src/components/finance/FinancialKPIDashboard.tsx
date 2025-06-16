@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ import {
   Filter,
   Download
 } from 'lucide-react';
-import { FinancialAnalyticsService, mockFinancialData } from '@/services/financialAnalytics';
+import { financialAnalyticsService } from '@/services/financialAnalytics';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -41,14 +40,14 @@ const FinancialKPIDashboard = () => {
     return `${value.toFixed(1)}%`;
   };
 
-  const netProfitData = FinancialAnalyticsService.calculateNetProfitByBranch([], [], []);
-  const grossMarginData = FinancialAnalyticsService.calculateGrossMarginPerService([], []);
-  const plData = FinancialAnalyticsService.generatePLStatement();
-  const expenseData = FinancialAnalyticsService.getExpenseBreakdown([]);
-  const doctorKPIs = FinancialAnalyticsService.calculateDoctorKPIs();
-  const branchEfficiency = FinancialAnalyticsService.calculateBranchEfficiency();
-  const customerMetrics = FinancialAnalyticsService.getCustomerMetrics();
-  const taxLiability = mockFinancialData.taxLiability;
+  const netProfitData = financialAnalyticsService.calculateNetProfitByBranch([], [], []);
+  const grossMarginData = financialAnalyticsService.calculateGrossMarginPerService([], []);
+  const plData = financialAnalyticsService.generatePLStatement();
+  const expenseData = financialAnalyticsService.getExpenseBreakdown([]);
+  const doctorKPIs = financialAnalyticsService.calculateDoctorKPIs();
+  const branchEfficiency = financialAnalyticsService.calculateBranchEfficiency();
+  const customerMetrics = financialAnalyticsService.getCustomerMetrics();
+  const taxLiability = financialAnalyticsService.mockFinancialData.taxLiability;
 
   const renderProfitAnalysis = () => (
     <div className="space-y-6">
