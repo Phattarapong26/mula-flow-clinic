@@ -1,24 +1,28 @@
+
 export interface DashboardStats {
-  totalCustomers: number;
   totalRevenue: number;
-  appointmentsToday: number;
-  activeServices: number;
-  pendingPayments: number;
-  completedTreatments: number;
+  totalAppointments: number;
+  totalCustomers: number;
+  totalServices: number;
+  revenueGrowth: number;
+  appointmentGrowth: number;
+  customerGrowth: number;
+  averageOrderValue: number;
 }
 
 export interface RevenueData {
-  month: string;
+  date: string;
   revenue: number;
-  expenses: number;
-  profit: number;
+  target?: number;
+  growth: number;
 }
 
 export interface ServicePerformance {
-  name: string;
+  serviceId: string;
+  serviceName: string;
   revenue: number;
-  bookings: number;
-  growthRate: number;
+  appointments: number;
+  growth: number;
 }
 
 export interface AppointmentData {
@@ -36,24 +40,25 @@ export interface CustomerDemographic {
 }
 
 export interface DoctorPerformance {
-  name: string;
+  doctorId: string;
+  doctorName: string;
   appointments: number;
   revenue: number;
   rating: number;
-  specialization: string;
 }
 
 export interface BranchPerformance {
-  name: string;
+  branchId: string;
+  branchName: string;
   revenue: number;
-  customers: number;
   appointments: number;
-  growth: number;
+  utilization: number;
 }
 
 export interface PaymentMethodData {
-  method: string;
-  count: number;
+  methodId: string;
+  methodName: string;
   amount: number;
+  count: number;
   percentage: number;
 }

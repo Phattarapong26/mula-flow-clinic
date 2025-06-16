@@ -1,73 +1,55 @@
-import { jwtDecode } from 'jwt-decode';
 
-interface DecodedToken {
-  exp: number;
+import { jwtDecode } from 'jwt-decode';
+import { security } from './security';
+
+interface JWTPayload {
   sub: string;
+  email: string;
   role: string;
-  tenant_id: string;
+  permissions: string[];
+  exp: number;
+  iat: number;
 }
 
-const TOKEN_KEY = 'auth_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
-
 export const getAuthToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem('jwt_token');
 };
 
 export const setAuthToken = (token: string): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem('jwt_token', token);
 };
 
 export const clearAuthToken = (): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-};
-
-export const getRefreshToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
-};
-
-export const setRefreshToken = (token: string): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  localStorage.removeItem('jwt_token');
+  security.clearSensitiveData();
 };
 
 export const isTokenExpired = (token: string): boolean => {
   try {
-    const decoded = jwtDecode<DecodedToken>(token);
-    return decoded.exp * 1000 < Date.now();
+    const decoded = jwtDecode<JWTPayload>(token);
+    return Date.now() >= decoded.exp * 1000;
   } catch {
     return true;
   }
 };
 
-export const getDecodedToken = (): DecodedToken | null => {
-  const token = getAuthToken();
-  if (!token) return null;
-  
+export const getUserFromToken = (token: string): JWTPayload | null => {
   try {
-    return jwtDecode<DecodedToken>(token);
+    const decoded = jwtDecode<JWTPayload>(token);
+    if (isTokenExpired(token)) {
+      return null;
+    }
+    return decoded;
   } catch {
     return null;
   }
 };
 
-export const isAuthenticated = (): boolean => {
+export const refreshTokenIfNeeded = async (): Promise<string | null> => {
   const token = getAuthToken();
-  if (!token) return false;
-  return !isTokenExpired(token);
+  if (!token || isTokenExpired(token)) {
+    clearAuthToken();
+    return null;
+  }
+  return token;
 };
-
-export const getUserRole = (): string | null => {
-  const decoded = getDecodedToken();
-  return decoded?.role || null;
-};
-
-export const getTenantId = (): string | null => {
-  const decoded = getDecodedToken();
-  return decoded?.tenant_id || null;
-}; 
