@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -92,7 +91,7 @@ const StaffAppointmentCreate = () => {
   };
 
   const selectedService = mockServices.find(s => s.id === formData.service_id);
-  if (selectedService && formData.duration_minutes !== selectedService.duration_minutes) {
+  if (selectedService && selectedService.duration_minutes && formData.duration_minutes !== selectedService.duration_minutes) {
     setFormData(prev => ({ ...prev, duration_minutes: selectedService.duration_minutes }));
   }
 
@@ -223,7 +222,7 @@ const StaffAppointmentCreate = () => {
                     <SelectContent>
                       {mockServices.map((service) => (
                         <SelectItem key={service.id} value={service.id}>
-                          {service.name} - ฿{service.price?.toLocaleString()} ({service.duration_minutes} นาที)
+                          {service.name} - ฿{service.price?.toLocaleString()} ({service.duration_minutes || 60} นาที)
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -30,7 +30,7 @@ const StaffAppointmentCalendar = () => {
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
     return mockAppointments.filter(apt => {
-      const aptDate = new Date(apt.scheduled_at);
+      const aptDate = new Date(apt.appointment_date || apt.date);
       return aptDate.toDateString() === date.toDateString();
     });
   };
@@ -50,7 +50,8 @@ const StaffAppointmentCalendar = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'booked': return 'bg-blue-500';
+      case 'booked':
+      case 'confirmed': return 'bg-blue-500';
       case 'completed': return 'bg-green-500';
       case 'cancelled': return 'bg-red-500';
       case 'no_show': return 'bg-orange-500';
@@ -60,7 +61,8 @@ const StaffAppointmentCalendar = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'booked': return 'จองแล้ว';
+      case 'booked':
+      case 'confirmed': return 'จองแล้ว';
       case 'completed': return 'เสร็จสิ้น';
       case 'cancelled': return 'ยกเลิก';
       case 'no_show': return 'ไม่มา';
@@ -142,9 +144,9 @@ const StaffAppointmentCalendar = () => {
                           <div
                             key={aptIndex}
                             className={`text-xs p-1 rounded text-white ${getStatusColor(apt.status)}`}
-                            title={`${apt.customer_name} - ${apt.type_name}`}
+                            title={`${apt.customerName || apt.customer_name} - ${apt.service || apt.service_type}`}
                           >
-                            {apt.customer_name.substring(0, 8)}...
+                            {(apt.customerName || apt.customer_name).substring(0, 8)}...
                           </div>
                         ))}
                         {appointments.length > 2 && (
@@ -209,8 +211,8 @@ const StaffAppointmentCalendar = () => {
                   <div key={appointment.id} className="border rounded-lg p-3 hover:shadow-sm transition-shadow">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-medium text-sm">{appointment.customer_name}</h4>
-                        <p className="text-xs text-gray-600">{appointment.type_name}</p>
+                        <h4 className="font-medium text-sm">{appointment.customerName || appointment.customer_name}</h4>
+                        <p className="text-xs text-gray-600">{appointment.service || appointment.service_type}</p>
                       </div>
                       <Badge className={getStatusColor(appointment.status) + ' text-white text-xs'}>
                         {getStatusLabel(appointment.status)}
@@ -218,12 +220,9 @@ const StaffAppointmentCalendar = () => {
                     </div>
                     
                     <div className="text-xs text-gray-600 space-y-1">
-                      <div>เวลา: {new Date(appointment.scheduled_at).toLocaleTimeString('th-TH', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}</div>
-                      <div>หมอ: {appointment.doctor_name}</div>
-                      <div>ระยะเวลา: {appointment.duration_minutes} นาที</div>
+                      <div>เวลา: {appointment.time || appointment.appointment_time}</div>
+                      <div>หมอ: {appointment.doctorName || appointment.doctor_name}</div>
+                      <div>ระยะเวลา: {appointment.duration_minutes || 60} นาที</div>
                       {appointment.notes && (
                         <div className="text-gray-500">หมายเหตุ: {appointment.notes}</div>
                       )}

@@ -4,21 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, User, MapPin, Loader2, AlertCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { appointmentService } from '@/services/appointmentService';
+import { mockAppointments, MockAppointment } from '@/data/staffMockData';
 import DOMPurify from 'dompurify';
 import { z } from 'zod';
 
-interface Appointment {
-  id: string;
-  customerName: string;
-  customerPhone: string;
-  date: string;
-  time: string;
-  service: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
-  branch: string;
-  notes?: string;
-}
+// Use MockAppointment as the main interface
+interface Appointment extends MockAppointment {}
 
 const appointmentSchema = z.object({
   customerName: z.string().min(1, 'Customer name is required'),
@@ -44,8 +35,11 @@ const StaffAppointments = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const response = await appointmentService.getStaffAppointments(selectedDate);
-      setAppointments(response.data);
+      // Simulate API call - in real app this would be: await appointmentService.getStaffAppointments(selectedDate);
+      const filteredAppointments = mockAppointments.filter(apt => 
+        apt.date === selectedDate || apt.appointment_date === selectedDate
+      );
+      setAppointments(filteredAppointments);
       setError(null);
     } catch (err) {
       setError('Failed to fetch appointments');
@@ -60,11 +54,13 @@ const StaffAppointments = () => {
 
   const handleStatusUpdate = async (appointmentId: string, newStatus: Appointment['status']) => {
     try {
-      await appointmentService.updateAppointmentStatus(appointmentId, newStatus);
+      // Simulate API call - in real app: await appointmentService.updateAppointmentStatus(appointmentId, newStatus);
+      setAppointments(prev => prev.map(apt => 
+        apt.id === appointmentId ? { ...apt, status: newStatus } : apt
+      ));
       toast({
         description: "Appointment status updated successfully"
       });
-      fetchAppointments();
     } catch (err) {
       toast({
         variant: "destructive",
@@ -231,4 +227,4 @@ const StaffAppointments = () => {
   );
 };
 
-export default StaffAppointments; 
+export default StaffAppointments;

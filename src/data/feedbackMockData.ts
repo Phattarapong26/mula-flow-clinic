@@ -7,6 +7,11 @@ export interface FeedbackData {
   serviceType: string;
   date: string;
   branchName: string;
+  status: 'pending' | 'reviewed' | 'resolved';
+  response?: string;
+  respondedBy?: string;
+  respondedAt?: string;
+  createdAt: string;
 }
 
 export const mockFeedbackData: FeedbackData[] = [
@@ -17,7 +22,12 @@ export const mockFeedbackData: FeedbackData[] = [
     comment: 'บริการดีมาก พนักงานใจดี',
     serviceType: 'ตรวจสายตา',
     date: '2024-01-15',
-    branchName: 'สาขาหลัก'
+    branchName: 'สาขาหลัก',
+    status: 'reviewed',
+    response: 'ขอบคุณสำหรับความคิดเห็น เราจะพัฒนาบริการให้ดียิ่งขึ้น',
+    respondedBy: 'ผู้จัดการสาขา',
+    respondedAt: '2024-01-16',
+    createdAt: '2024-01-15'
   }
 ];
 

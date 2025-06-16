@@ -1,4 +1,3 @@
-
 export interface MockPatient {
   id: string;
   name: string;
@@ -60,6 +59,19 @@ export interface MockAppointment {
   customerName: string;
   customerPhone: string;
   branch: string;
+  customer_name: string;
+  doctor_name: string;
+  service_type: string;
+  type_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  scheduled_at: string;
+  duration_minutes: number;
+  notes?: string;
+  external_ref?: string;
+  customer_id: string;
+  doctor_id: string;
+  created_at: string;
 }
 
 export interface MockDoctor {
@@ -72,6 +84,7 @@ export interface MockService {
   id: string;
   name: string;
   price: number;
+  duration_minutes: number;
 }
 
 export interface MockClaim {
@@ -172,7 +185,20 @@ export const mockAppointments: MockAppointment[] = [
     status: 'confirmed',
     customerName: 'สมชาย รักดี',
     customerPhone: '081-234-5678',
-    branch: 'สาขาหลัก'
+    branch: 'สาขาหลัก',
+    customer_name: 'สมชาย รักดี',
+    doctor_name: 'นพ.วิชัย ใสใจ',
+    service_type: 'ตรวจสายตาทั่วไป',
+    type_name: 'ตรวจสายตาทั่วไป',
+    appointment_date: '2024-01-15',
+    appointment_time: '09:00',
+    scheduled_at: '2024-01-15T09:00:00',
+    duration_minutes: 60,
+    notes: 'ผู้ป่วยมีอาการสายตาสั้น',
+    external_ref: 'EXT001',
+    customer_id: 'P001',
+    doctor_id: 'D001',
+    created_at: '2024-01-01'
   }
 ];
 
@@ -188,7 +214,8 @@ export const mockServices: MockService[] = [
   {
     id: 'S001',
     name: 'ตรวจสายตาทั่วไป',
-    price: 1500
+    price: 1500,
+    duration_minutes: 60
   }
 ];
 
