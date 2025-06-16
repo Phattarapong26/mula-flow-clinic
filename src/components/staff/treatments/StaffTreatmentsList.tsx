@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Activity, Plus, Search, Calendar, User, FileText, Eye, Edit } from 'lucide-react';
-import { mockTreatments } from '@/data/staffMockData';
+import { mockTreatments } from '@/data/mockData';
 import { Link } from 'react-router-dom';
 
 const StaffTreatmentsList = () => {
@@ -15,9 +15,9 @@ const StaffTreatmentsList = () => {
   const [treatments] = useState(mockTreatments);
 
   const filteredTreatments = treatments.filter(treatment => {
-    const matchesSearch = treatment.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         treatment.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         treatment.doctor_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = treatment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         treatment.serviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         treatment.doctorName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || treatment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -44,7 +44,7 @@ const StaffTreatmentsList = () => {
   const totalTreatments = treatments.length;
   const completedTreatments = treatments.filter(t => t.status === 'completed').length;
   const todayTreatments = treatments.filter(t => {
-    const treatmentDate = new Date(t.treatment_date).toDateString();
+    const treatmentDate = new Date(t.treatmentDate).toDateString();
     const today = new Date().toDateString();
     return treatmentDate === today;
   }).length;
@@ -149,24 +149,24 @@ const StaffTreatmentsList = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">{treatment.customer_name}</h3>
+                      <h3 className="font-semibold text-lg">{treatment.customerName}</h3>
                       {getStatusBadge(treatment.status)}
                       <span className="text-sm text-gray-500">
-                        {new Date(treatment.treatment_date).toLocaleDateString('th-TH')}
+                        {new Date(treatment.treatmentDate).toLocaleDateString('th-TH')}
                       </span>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Activity className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">{treatment.service_name}</span>
+                        <span className="font-medium">{treatment.serviceName}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-gray-400" />
-                        <span>{treatment.doctor_name}</span>
+                        <span>{treatment.doctorName}</span>
                       </div>
                       <div className="text-gray-600">
-                        เวลา: {new Date(treatment.treatment_date).toLocaleTimeString('th-TH', { 
+                        เวลา: {new Date(treatment.treatmentDate).toLocaleTimeString('th-TH', { 
                           hour: '2-digit', 
                           minute: '2-digit' 
                         })}

@@ -110,6 +110,10 @@ const BranchRevenue = () => {
     });
   };
 
+  const handleServiceBlur = (field: string) => {
+    handleBlur(`services.${field}`);
+  };
+
   useEffect(() => {
     fetchBranches();
     fetchRevenueData();

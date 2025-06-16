@@ -1,212 +1,99 @@
-export interface DoctorPerformance {
+
+export interface MockTreatment {
   id: string;
-  name: string;
-  specialization: string;
-  patients: number;
-  revenue: number;
-  appointments: number;
-  satisfaction: number;
-  utilization: number;
-}
-
-export const doctorPerformanceData: DoctorPerformance[] = [
-  {
-    id: '1',
-    name: 'Dr. John Smith',
-    specialization: 'Ophthalmology',
-    patients: 120,
-    revenue: 450000,
-    appointments: 150,
-    satisfaction: 95,
-    utilization: 88
-  },
-  {
-    id: '2',
-    name: 'Dr. Sarah Johnson',
-    specialization: 'Optometry',
-    patients: 95,
-    revenue: 380000,
-    appointments: 120,
-    satisfaction: 92,
-    utilization: 85
-  },
-  {
-    id: '3',
-    name: 'Dr. Michael Chen',
-    specialization: 'Ophthalmology',
-    patients: 110,
-    revenue: 420000,
-    appointments: 140,
-    satisfaction: 94,
-    utilization: 90
-  }
-]; 
-
-export interface AppointmentData {
-  date: string;
-  booked: number;
-  completed: number;
-  cancelled: number;
-  noShow: number;
-}
-
-export interface BranchPerformance {
-  id: string;
-  name: string;
-  revenue: number;
-  growth: number;
-  patients: number;
-  appointments: number;
-  utilization: number;
-}
-
-export interface CustomerDemographic {
-  ageGroup: string;
-  count: number;
-  percentage: number;
-}
-
-export interface RevenueData {
-  date: string;
-  revenue: number;
-  target?: number;
-  growth: number;
-}
-
-export interface ServicePerformance {
-  serviceId: string;
+  customerName: string;
   serviceName: string;
-  revenue: number;
-  appointments: number;
-  growth: number;
+  doctorName: string;
+  treatmentDate: string;
+  status: 'completed' | 'active' | 'cancelled';
+  notes?: string;
 }
 
-export interface PaymentMethodData {
-  methodId: string;
-  methodName: string;
-  amount: number;
-  count: number;
-  percentage: number;
+export interface MockFollowup {
+  id: string;
+  patientName: string;
+  scheduledDate: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  type: string;
+  notes?: string;
 }
 
-export const appointmentData: AppointmentData[] = [
-  {
-    date: '2024-01-01',
-    booked: 45,
-    completed: 40,
-    cancelled: 3,
-    noShow: 2
-  },
-  {
-    date: '2024-01-02',
-    booked: 52,
-    completed: 48,
-    cancelled: 2,
-    noShow: 2
-  }
-];
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  category: 'follow_up' | 'appointment' | 'inventory' | 'administrative';
+  priority: 'low' | 'medium' | 'high';
+  assigned_to: string;
+  dueDate: string;
+  status: 'pending' | 'completed' | 'cancelled';
+  created_at: string;
+}
 
-export const branchPerformance: BranchPerformance[] = [
+export const mockTreatments: MockTreatment[] = [
   {
     id: '1',
-    name: 'สาขาหลัก',
-    revenue: 1500000,
-    growth: 12.5,
-    patients: 450,
-    appointments: 600,
-    utilization: 85
+    customerName: 'สมชาย ใจดี',
+    serviceName: 'ตรวจสายตา',
+    doctorName: 'นพ.สมศักดิ์ วิชาการ',
+    treatmentDate: '2024-01-15T10:00:00Z',
+    status: 'completed',
+    notes: 'ตรวจพบสายตาสั้น -2.00 D'
   },
   {
     id: '2',
-    name: 'สาขาดาวน์ทาวน์',
-    revenue: 1200000,
-    growth: 8.3,
-    patients: 380,
-    appointments: 500,
-    utilization: 78
+    customerName: 'สมหญิง สวยงาม',
+    serviceName: 'แว่นตา',
+    doctorName: 'นพ.วิทยา รักษา',
+    treatmentDate: '2024-01-16T14:30:00Z',
+    status: 'active',
+    notes: 'กำลังดำเนินการสั่งทำแว่น'
   }
 ];
 
-export const customerDemographics: CustomerDemographic[] = [
+export const mockFollowups: MockFollowup[] = [
   {
-    ageGroup: '18-25',
-    count: 150,
-    percentage: 20
-  },
-  {
-    ageGroup: '26-35',
-    count: 225,
-    percentage: 30
-  },
-  {
-    ageGroup: '36-45',
-    count: 180,
-    percentage: 24
-  },
-  {
-    ageGroup: '46-55',
-    count: 120,
-    percentage: 16
-  },
-  {
-    ageGroup: '56+',
-    count: 75,
-    percentage: 10
+    id: '1',
+    patientName: 'สมชาย ใจดี',
+    scheduledDate: '2024-02-15T10:00:00Z',
+    status: 'scheduled',
+    type: 'ตรวจตาต่อเนื่อง',
+    notes: 'ตรวจสุขภาพตาหลังใส่แว่น 1 เดือน'
   }
 ];
 
-export const revenueData: RevenueData[] = [
+export const mockTasks: Task[] = [
   {
-    date: '2024-01-01',
-    revenue: 125000,
-    target: 120000,
-    growth: 8.5
-  },
-  {
-    date: '2024-01-02',
-    revenue: 135000,
-    target: 125000,
-    growth: 12.3
+    id: '1',
+    title: 'ติดตามผู้ป่วย',
+    description: 'โทรติดตามผู้ป่วยหลังผ่าตัด',
+    category: 'follow_up',
+    priority: 'high',
+    assigned_to: 'พยาบาลสมใจ',
+    dueDate: '2024-01-20T17:00:00Z',
+    status: 'pending',
+    created_at: '2024-01-15T09:00:00Z'
   }
 ];
 
-export const servicePerformance: ServicePerformance[] = [
+export const mockAppointments = [
   {
-    serviceId: 'S001',
-    serviceName: 'ตรวจสายตาทั่วไป',
-    revenue: 450000,
-    appointments: 300,
-    growth: 15.2
-  },
-  {
-    serviceId: 'S002',
-    serviceName: 'ผ่าตัดต้อกระจก',
-    revenue: 800000,
-    appointments: 80,
-    growth: 8.7
+    id: '1',
+    patientName: 'สมชาย ใจดี',
+    appointmentDate: '2024-01-20T10:00:00Z',
+    status: 'scheduled' as const,
+    service: 'ตรวจสายตา',
+    doctor: 'นพ.สมศักดิ์'
   }
 ];
 
-export const paymentMethodData: PaymentMethodData[] = [
+export const mockClaims = [
   {
-    methodId: 'cash',
-    methodName: 'เงินสด',
-    amount: 450000,
-    count: 120,
-    percentage: 35
-  },
-  {
-    methodId: 'card',
-    methodName: 'บัตรเครดิต',
-    amount: 650000,
-    count: 180,
-    percentage: 45
-  },
-  {
-    methodId: 'transfer',
-    methodName: 'โอนเงิน',
-    amount: 200000,
-    count: 60,
-    percentage: 20
+    id: '1',
+    type: 'ค่าทำแว่น',
+    amount: 5000,
+    status: 'pending' as const,
+    submittedDate: '2024-01-15T10:00:00Z',
+    description: 'เบิกค่าทำแว่นตาพนักงาน'
   }
 ];

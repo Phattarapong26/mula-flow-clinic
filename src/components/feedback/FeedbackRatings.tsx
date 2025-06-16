@@ -1,270 +1,172 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { httpClient } from '@/utils/httpClient';
-import { Star, TrendingUp, MessageSquare, ThumbsUp, AlertCircle, Building2 } from 'lucide-react';
-
-interface FeedbackRating {
-  id: string;
-  customerName: string;
-  serviceName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  branchName: string;
-}
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Star, TrendingUp, TrendingDown, MessageSquare, ThumbsUp, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import useApi from '@/hooks/useApi';
 
 interface RatingStats {
   averageRating: number;
-  totalReviews: number;
-  ratingDistribution: { rating: number; count: number }[];
+  totalRatings: number;
+  ratingsBreakdown: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
+  trend: number;
 }
 
 const FeedbackRatings = () => {
-  const [ratings, setRatings] = useState<FeedbackRating[]>([]);
-  const [stats, setStats] = useState<RatingStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedBranch, setSelectedBranch] = useState<string>('all');
-  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
+  const [stats, setStats] = useState<RatingStats>({
+    averageRating: 0,
+    totalRatings: 0,
+    ratingsBreakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+    trend: 0
+  });
+  const { toast } = useToast();
+
+  const {
+    data: ratingsData,
+    loading,
+    error,
+    get: getRatings
+  } = useApi<RatingStats>();
 
   useEffect(() => {
-    loadBranches();
-    loadRatings();
-    loadStats();
-  }, [selectedBranch]);
+    fetchRatings();
+  }, []);
 
-  const loadBranches = async () => {
+  const fetchRatings = async () => {
     try {
-      const response = await httpClient.get<{ id: string; name: string }[]>('/api/branches');
-      setBranches(Array.isArray(response) ? response : []);
-    } catch (error) {
-      console.error('Failed to load branches:', error);
+      const response = await getRatings('/api/feedback/ratings');
+      if (response && response.data) {
+        setStats(response.data);
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch rating statistics. Please try again later.",
+        variant: "destructive"
+      });
     }
-  };
-
-  const loadRatings = async () => {
-    try {
-      setLoading(true);
-      const params = selectedBranch !== 'all' ? { branchId: selectedBranch } : {};
-      const response = await httpClient.get<FeedbackRating[]>('/api/feedback/ratings', { params });
-      setRatings(Array.isArray(response) ? response : []);
-    } catch (error) {
-      console.error('Failed to load ratings:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadStats = async () => {
-    try {
-      const params = selectedBranch !== 'all' ? { branchId: selectedBranch } : {};
-      const response = await httpClient.get<RatingStats>('/api/feedback/stats', { params });
-      setStats(response || null);
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-    }
-  };
-
-  const renderStars = (rating: number) => {
-    return [...Array(5)].map((_, index) => (
-      <Star
-        key={index}
-        className={`w-4 h-4 ${
-          index < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-        }`}
-      />
-    ));
   };
 
   if (loading) {
+    return <div className="text-center py-8">Loading ratings...</div>;
+  }
+
+  if (error) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Star className="mx-auto h-12 w-12 text-gray-400 mb-4 animate-pulse" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              กำลังโหลดข้อมูลคะแนนรีวิว
-            </h3>
-            <p className="text-gray-500">
-              กรุณารอสักครู่...
-            </p>
-          </div>
-        </div>
+      <div className="text-center py-8">
+        <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Ratings</h3>
+        <p className="text-gray-600 mb-4">Failed to load rating statistics</p>
+        <Button onClick={fetchRatings}>Try Again</Button>
       </div>
     );
   }
 
-  if (branches.length === 0) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Building2 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              ไม่พบข้อมูลสาขา
-            </h3>
-            <p className="text-gray-500">
-              กรุณาเพิ่มข้อมูลสาขาก่อนดูคะแนนรีวิว
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const getRatingPercentage = (rating: number) => {
+    return stats.totalRatings > 0 ? (stats.ratingsBreakdown[rating as keyof typeof stats.ratingsBreakdown] / stats.totalRatings) * 100 : 0;
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">คะแนนรีวิว</h1>
-        <div className="flex items-center space-x-4">
-          <select
-            value={selectedBranch}
-            onChange={(e) => setSelectedBranch(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md"
-          >
-            <option value="all">ทุกสาขา</option>
-            {branches.map(branch => (
-              <option key={branch.id} value={branch.id}>{branch.name}</option>
-            ))}
-          </select>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Customer Ratings</h1>
+          <p className="text-gray-600">Monitor customer satisfaction and feedback ratings</p>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">คะแนนเฉลี่ย</p>
-                  <div className="flex items-center mt-1">
-                    <span className="text-2xl font-bold text-yellow-600">
-                      {stats.averageRating.toFixed(1)}
-                    </span>
-                    <div className="flex ml-2">
-                      {renderStars(Math.round(stats.averageRating))}
-                    </div>
-                  </div>
-                </div>
-                <Star className="h-12 w-12 text-yellow-400" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">จำนวนรีวิว</p>
-                  <p className="text-2xl font-bold text-blue-600 mt-1">
-                    {stats.totalReviews.toLocaleString()}
-                  </p>
-                </div>
-                <MessageSquare className="h-12 w-12 text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">ความพึงพอใจ</p>
-                  <p className="text-2xl font-bold text-green-600 mt-1">
-                    {((stats.averageRating / 5) * 100).toFixed(0)}%
-                  </p>
-                </div>
-                <ThumbsUp className="h-12 w-12 text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Rating Distribution */}
-      {stats && (
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle>การกระจายคะแนน</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[5, 4, 3, 2, 1].map(rating => {
-                const data = stats.ratingDistribution.find(d => d.rating === rating);
-                const count = data?.count || 0;
-                const percentage = stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
-                
-                return (
-                  <div key={rating} className="flex items-center space-x-3">
-                    <div className="flex items-center w-16">
-                      <span className="text-sm font-medium">{rating}</span>
-                      <Star className="w-4 h-4 text-yellow-400 fill-current ml-1" />
-                    </div>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-600 w-16 text-right">
-                      {count} ({percentage.toFixed(0)}%)
-                    </span>
-                  </div>
-                );
-              })}
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Average Rating</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.averageRating.toFixed(1)}</p>
+              </div>
+              <Star className="h-8 w-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Recent Reviews */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Ratings</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.totalRatings}</p>
+              </div>
+              <MessageSquare className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Positive Ratings</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {((stats.ratingsBreakdown[4] + stats.ratingsBreakdown[5]) / stats.totalRatings * 100).toFixed(1)}%
+                </p>
+              </div>
+              <ThumbsUp className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Trend</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-purple-600">{Math.abs(stats.trend).toFixed(1)}%</p>
+                  {stats.trend >= 0 ? (
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-5 w-5 text-red-600" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Rating Distribution */}
       <Card>
         <CardHeader>
-          <CardTitle>รีวิวล่าสุด</CardTitle>
+          <CardTitle>Rating Distribution</CardTitle>
         </CardHeader>
         <CardContent>
-          {ratings.length === 0 ? (
-            <div className="text-center py-8">
-              <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                ไม่พบข้อมูลรีวิว
-              </h3>
-              <p className="text-gray-500">
-                ยังไม่มีลูกค้าให้คะแนนรีวิวสำหรับช่วงเวลานี้
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {ratings.slice(0, 10).map((rating) => (
-                <div key={rating.id} className="border-b border-gray-200 pb-4 last:border-b-0">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="font-medium text-gray-900">{rating.customerName}</h4>
-                        <span className="text-sm text-gray-500">•</span>
-                        <span className="text-sm text-gray-500">{rating.serviceName}</span>
-                        <span className="text-sm text-gray-500">•</span>
-                        <span className="text-sm text-gray-500">{rating.branchName}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className="flex">
-                          {renderStars(rating.rating)}
-                        </div>
-                        <span className="text-sm text-gray-600">({rating.rating}/5)</span>
-                      </div>
-                      {rating.comment && (
-                        <p className="text-gray-700 text-sm">{rating.comment}</p>
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-400">
-                      {new Date(rating.createdAt).toLocaleDateString('th-TH')}
-                    </span>
-                  </div>
+          <div className="space-y-4">
+            {[5, 4, 3, 2, 1].map((rating) => (
+              <div key={rating} className="flex items-center gap-4">
+                <div className="flex items-center gap-2 w-20">
+                  <span className="text-sm font-medium">{rating}</span>
+                  <Star className="h-4 w-4 text-yellow-500" />
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${getRatingPercentage(rating)}%` }}
+                  />
+                </div>
+                <span className="text-sm text-gray-600 w-16 text-right">
+                  {stats.ratingsBreakdown[rating as keyof typeof stats.ratingsBreakdown]} ({getRatingPercentage(rating).toFixed(1)}%)
+                </span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
