@@ -20,16 +20,29 @@ export const registerSchema = z.object({
 export const revenueSchemas = {
   create: z.object({
     branchId: z.string().min(1, 'กรุณาเลือกสาขา'),
-    amount: z.number().min(0, 'จำนวนเงินต้องไม่ติดลบ'),
-    source: z.string().min(1, 'กรุณาระบุแหล่งรายได้'),
-    date: z.string().min(1, 'กรุณาระบุวันที่'),
-    description: z.string().optional()
-  }),
+    month: z.string().min(1, 'กรุณาเลือกเดือน'),
+    year: z.number().min(2000, 'ปีไม่ถูกต้อง'),
+    revenue: z.number().min(0, 'รายได้ต้องไม่ติดลบ'),
+    target: z.number().min(0, 'เป้าหมายต้องไม่ติดลบ'),
+    services: z.object({
+      eyeExam: z.number().min(0, 'รายได้ตรวจสายตาต้องไม่ติดลบ'),
+      glasses: z.number().min(0, 'รายได้แว่นตาต้องไม่ติดลบ'),
+      contactLens: z.number().min(0, 'รายได้คอนแทคเลนส์ต้องไม่ติดลบ'),
+      surgery: z.number().min(0, 'รายได้ผ่าตัดต้องไม่ติดลบ')
+    }).strict()
+  }).strict(),
   update: z.object({
-    amount: z.number().min(0, 'จำนวนเงินต้องไม่ติดลบ').optional(),
-    source: z.string().min(1, 'กรุณาระบุแหล่งรายได้').optional(),
-    date: z.string().min(1, 'กรุณาระบุวันที่').optional(),
-    description: z.string().optional()
+    branchId: z.string().min(1, 'กรุณาเลือกสาขา').optional(),
+    month: z.string().min(1, 'กรุณาเลือกเดือน').optional(),
+    year: z.number().min(2000, 'ปีไม่ถูกต้อง').optional(),
+    revenue: z.number().min(0, 'รายได้ต้องไม่ติดลบ').optional(),
+    target: z.number().min(0, 'เป้าหมายต้องไม่ติดลบ').optional(),
+    services: z.object({
+      eyeExam: z.number().min(0, 'รายได้ตรวจสายตาต้องไม่ติดลบ'),
+      glasses: z.number().min(0, 'รายได้แว่นตาต้องไม่ติดลบ'),
+      contactLens: z.number().min(0, 'รายได้คอนแทคเลนส์ต้องไม่ติดลบ'),
+      surgery: z.number().min(0, 'รายได้ผ่าตัดต้องไม่ติดลบ')
+    }).strict().optional()
   })
 };
 

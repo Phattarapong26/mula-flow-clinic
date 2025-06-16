@@ -14,23 +14,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { revenueSchemas } from '@/utils/validation';
 import useApi from '@/hooks/useApi';
 import { useForm } from '@/hooks/useForm';
-import { z } from 'zod';
 
-// Validation schemas
-const revenueRecordSchema = z.object({
-  branchId: z.string().min(1, 'Branch is required'),
-  month: z.string().min(1, 'Month is required'),
-  year: z.number().min(2000, 'Invalid year'),
-  revenue: z.number().min(0, 'Revenue must be positive'),
-  target: z.number().min(0, 'Target must be positive'),
-  services: z.object({
-    eyeExam: z.number().min(0, 'Eye exam revenue must be positive'),
-    glasses: z.number().min(0, 'Glasses revenue must be positive'),
-    contactLens: z.number().min(0, 'Contact lens revenue must be positive'),
-    surgery: z.number().min(0, 'Surgery revenue must be positive')
-  }).strict()
-}).strict();
-
+// Validation schemas and interfaces
 interface RevenueRecord {
   id: string;
   branchId: string;
