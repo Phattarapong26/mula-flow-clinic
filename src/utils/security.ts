@@ -45,7 +45,26 @@ export const security = {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  },
+
+  // Clear sensitive data from memory
+  clearSensitiveData(): void {
+    // Clear any cached sensitive data
+    if (typeof window !== 'undefined') {
+      // Clear localStorage sensitive keys
+      const sensitiveKeys = ['user_data', 'temp_password', 'cache_'];
+      Object.keys(localStorage).forEach(key => {
+        if (sensitiveKeys.some(sensitiveKey => key.includes(sensitiveKey))) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
   }
+};
+
+// Export sanitizeObject function
+export const sanitizeObject = <T>(obj: T): T => {
+  return security.sanitizeSensitiveData(obj);
 };
 
 // Role-based access control functions

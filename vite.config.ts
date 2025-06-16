@@ -23,6 +23,14 @@ export default defineConfig(({ mode }) => ({
         drop_debugger: true,
       },
     },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          charts: ['recharts'],
+        },
+      },
+    },
   },
   esbuild: {
     drop: mode === 'production' ? ['console', 'debugger'] : [],
@@ -31,5 +39,12 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     strictPort: true,
+    headers: {
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';",
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+    },
   },
 }));

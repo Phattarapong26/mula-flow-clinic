@@ -20,8 +20,8 @@ export function useApi<T>() {
     try {
       setLoading(true);
       setError(null);
-      const response = await httpClient.get<T>(url, { params });
-      setData(response.data || response);
+      const response = await httpClient.get<T>(url, { requireAuth: true }, params);
+      setData(response.data);
       
       if (options.onSuccess) {
         options.onSuccess();
@@ -29,8 +29,8 @@ export function useApi<T>() {
       
       if (options.showToast) {
         toast({
-          title: 'Success',
-          description: 'Data loaded successfully'
+          title: 'สำเร็จ',
+          description: 'โหลดข้อมูลเรียบร้อยแล้ว'
         });
       }
       
@@ -43,7 +43,7 @@ export function useApi<T>() {
         options.onError(error);
       } else {
         toast({
-          title: 'Error',
+          title: 'เกิดข้อผิดพลาด',
           description: error.message,
           variant: 'destructive'
         });
@@ -59,7 +59,7 @@ export function useApi<T>() {
     try {
       setLoading(true);
       setError(null);
-      const response = await httpClient.post<T>(url, data);
+      const response = await httpClient.post<T>(url, data, { requireAuth: true });
       
       if (options.onSuccess) {
         options.onSuccess();
@@ -67,8 +67,8 @@ export function useApi<T>() {
       
       if (options.showToast) {
         toast({
-          title: 'Success',
-          description: 'Operation completed successfully'
+          title: 'สำเร็จ',
+          description: 'บันทึกข้อมูลเรียบร้อยแล้ว'
         });
       }
       
@@ -81,7 +81,7 @@ export function useApi<T>() {
         options.onError(error);
       } else {
         toast({
-          title: 'Error',
+          title: 'เกิดข้อผิดพลาด',
           description: error.message,
           variant: 'destructive'
         });

@@ -8,14 +8,16 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, DollarSign, Plus, Edit, Eye, Calendar, Download, Target, BarChart3, PieChart, Loader2, AlertCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Plus, Calendar, Download, Target, BarChart3, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Cell, Pie } from 'recharts';
 import { revenueSchemas } from '@/utils/validation';
 import useApi from '@/hooks/useApi';
 import { useForm } from '@/hooks/useForm';
+import { EmptyState } from '@/components/ui/empty-state';
+import { sanitizeObject } from '@/utils/security';
 
-// Validation schemas and interfaces
+// API interfaces
 interface RevenueRecord {
   id: string;
   branchId: string;
@@ -41,8 +43,6 @@ interface Branch {
 
 const BranchRevenue = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<RevenueRecord | null>(null);
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
   const { toast } = useToast();
@@ -92,10 +92,12 @@ const BranchRevenue = () => {
     },
     validationSchema: revenueSchemas.create,
     onSubmit: async (values) => {
-      await createRevenue('/api/revenue', values, {
+      const sanitizedValues = sanitizeObject(values);
+      await createRevenue('/api/revenue', sanitizedValues, {
         onSuccess: () => {
           resetForm();
           setIsCreateDialogOpen(false);
+          fetchRevenueData();
         }
       });
     }
@@ -106,10 +108,6 @@ const BranchRevenue = () => {
       ...newRecord.services,
       [field]: value
     });
-  };
-
-  const handleServiceBlur = (field: string) => {
-    handleBlur('services');
   };
 
   useEffect(() => {
@@ -137,18 +135,6 @@ const BranchRevenue = () => {
     }
   };
 
-  const handleExportReport = async () => {
-    try {
-      const params = {
-        branchId: selectedBranch === 'all' ? undefined : selectedBranch,
-        period: selectedPeriod
-      };
-      await getRevenue('/api/revenue/export', { showToast: true }, params);
-    } catch (error) {
-      // Error is handled by useApi hook
-    }
-  };
-
   if (branchesLoading || revenueLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -159,27 +145,166 @@ const BranchRevenue = () => {
 
   if (branchesError || revenueError) {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Data</h3>
-        <p className="text-gray-600">{branchesError?.message || revenueError?.message}</p>
-        <Button onClick={() => { fetchBranches(); fetchRevenueData(); }} className="mt-4">
-          Try Again
-        </Button>
-      </div>
+      <EmptyState
+        icon={DollarSign}
+        title="ไม่สามารถโหลดข้อมูลได้"
+        description="เกิดข้อผิดพลาดในการโหลดข้อมูลรายได้ กรุณาลองใหม่อีกครั้ง"
+        actionLabel="ลองใหม่"
+        onAction={() => { fetchBranches(); fetchRevenueData(); }}
+      />
     );
   }
 
   if (!revenueRecords?.length) {
     return (
-      <div className="text-center py-8">
-        <DollarSign className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Revenue Data Available</h3>
-        <p className="text-gray-600">There is no revenue data available for the selected period.</p>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4">
-          <Plus className="h-4 w-4 mr-2" />
-          Add First Record
-        </Button>
+      <div className="space-y-6 p-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">รายได้แยกสาขา</h1>
+            <p className="text-gray-600 mt-2">จัดการและติดตามรายได้ของแต่ละสาขาคลินิกตา</p>
+          </div>
+        </div>
+        
+        <EmptyState
+          icon={DollarSign}
+          title="ยังไม่มีข้อมูลรายได้"
+          description="เริ่มต้นโดยการบันทึกรายได้ของสาขาคลินิกตาเพื่อติดตามประสิทธิภาพ"
+          actionLabel="บันทึกรายได้แรก"
+          onAction={() => setIsCreateDialogOpen(true)}
+        />
+
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>บันทึกรายได้ใหม่</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="branchId">สาขา</Label>
+                <Select
+                  value={newRecord.branchId}
+                  onValueChange={(value) => handleChange('branchId', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="เลือกสาขา" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches?.map(branch => (
+                      <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isFieldTouched('branchId') && hasFieldError('branchId') && (
+                  <p className="text-sm text-red-500">{getFieldError('branchId')}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="month">เดือน</Label>
+                <Input
+                  id="month"
+                  type="month"
+                  value={newRecord.month}
+                  onChange={(e) => handleChange('month', e.target.value)}
+                  onBlur={() => handleBlur('month')}
+                />
+                {isFieldTouched('month') && hasFieldError('month') && (
+                  <p className="text-sm text-red-500">{getFieldError('month')}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="revenue">รายได้รวม (บาท)</Label>
+                <Input
+                  id="revenue"
+                  type="number"
+                  value={newRecord.revenue}
+                  onChange={(e) => handleChange('revenue', parseFloat(e.target.value) || 0)}
+                  onBlur={() => handleBlur('revenue')}
+                />
+                {isFieldTouched('revenue') && hasFieldError('revenue') && (
+                  <p className="text-sm text-red-500">{getFieldError('revenue')}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="target">เป้าหมาย (บาท)</Label>
+                <Input
+                  id="target"
+                  type="number"
+                  value={newRecord.target}
+                  onChange={(e) => handleChange('target', parseFloat(e.target.value) || 0)}
+                  onBlur={() => handleBlur('target')}
+                />
+                {isFieldTouched('target') && hasFieldError('target') && (
+                  <p className="text-sm text-red-500">{getFieldError('target')}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>รายได้แยกตามบริการ</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="eyeExam">ตรวจสายตา</Label>
+                    <Input
+                      id="eyeExam"
+                      type="number"
+                      value={newRecord.services.eyeExam}
+                      onChange={(e) => handleServiceChange('eyeExam', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="glasses">แว่นตา</Label>
+                    <Input
+                      id="glasses"
+                      type="number"
+                      value={newRecord.services.glasses}
+                      onChange={(e) => handleServiceChange('glasses', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="contactLens">คอนแทคเลนส์</Label>
+                    <Input
+                      id="contactLens"
+                      type="number"
+                      value={newRecord.services.contactLens}
+                      onChange={(e) => handleServiceChange('contactLens', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="surgery">ผ่าตัด/รักษา</Label>
+                    <Input
+                      id="surgery"
+                      type="number"
+                      value={newRecord.services.surgery}
+                      onChange={(e) => handleServiceChange('surgery', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCreateDialogOpen(false)}
+                >
+                  ยกเลิก
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      กำลังบันทึก...
+                    </>
+                  ) : (
+                    'บันทึก'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -505,12 +630,8 @@ const BranchRevenue = () => {
                         variant="outline" 
                         size="sm" 
                         className="w-full"
-                        onClick={() => {
-                          setSelectedRecord(latestRecord);
-                          setIsViewDialogOpen(true);
-                        }}
                       >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Calendar className="h-4 w-4 mr-2" />
                         ดูรายละเอียด
                       </Button>
                     </div>
@@ -551,7 +672,7 @@ const BranchRevenue = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5" />
+                  <BarChart3 className="h-5 w-5" />
                   สัดส่วนรายได้ตามบริการ
                 </CardTitle>
               </CardHeader>
@@ -590,11 +711,11 @@ const BranchRevenue = () => {
                 {filteredRecords.map((record) => (
                   <div key={record.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg">
-                            {record.branchName} - {record.month} {record.year}
-                          </h3>
+                      <div>
+                        <h3 className="font-semibold text-lg">
+                          {record.branchName} - {record.month} {record.year}
+                        </h3>
+                        <div className="flex items-center space-x-2">
                           <Badge className={record.achievement >= 100 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
                             {record.achievement >= 100 ? (
                               <TrendingUp className="h-3 w-3 mr-1" />
@@ -604,120 +725,17 @@ const BranchRevenue = () => {
                             {record.achievement.toFixed(1)}%
                           </Badge>
                         </div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium text-gray-700">รายได้:</span>
-                            <p className="text-green-600 font-bold">฿{record.revenue.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">เป้าหมาย:</span>
-                            <p className="font-medium">฿{record.target.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">ผลต่าง:</span>
-                            <p className={`font-bold ${(record.revenue - record.target) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {(record.revenue - record.target) >= 0 ? '+' : ''}฿{(record.revenue - record.target).toLocaleString()}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">วันที่บันทึก:</span>
-                            <p>{new Date(record.created_at).toLocaleDateString('th-TH')}</p>
-                          </div>
-                        </div>
                       </div>
-                      
-                      <div className="flex items-center gap-2 ml-4">
-                        <Dialog open={isViewDialogOpen && selectedRecord?.id === record.id} onOpenChange={(open) => {
-                          setIsViewDialogOpen(open);
-                          if (!open) setSelectedRecord(null);
-                        }}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" onClick={() => setSelectedRecord(record)}>
-                              <Eye className="h-4 w-4 mr-1" />
-                              ดูรายละเอียด
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[500px]">
-                            <DialogHeader>
-                              <DialogTitle>รายละเอียดรายได้</DialogTitle>
-                            </DialogHeader>
-                            {selectedRecord && (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <Label>สาขา:</Label>
-                                    <p className="font-medium">{selectedRecord.branchName}</p>
-                                  </div>
-                                  <div>
-                                    <Label>เดือน/ปี:</Label>
-                                    <p className="font-medium">{selectedRecord.month} {selectedRecord.year}</p>
-                                  </div>
-                                  <div>
-                                    <Label>รายได้รวม:</Label>
-                                    <p className="font-bold text-green-600">฿{selectedRecord.revenue.toLocaleString()}</p>
-                                  </div>
-                                  <div>
-                                    <Label>เป้าหมาย:</Label>
-                                    <p className="font-medium">฿{selectedRecord.target.toLocaleString()}</p>
-                                  </div>
-                                </div>
-                                
-                                <div className="border-t pt-4">
-                                  <h4 className="font-medium mb-3">รายได้แยกตามบริการ</h4>
-                                  <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                      <Label>ตรวจสายตา:</Label>
-                                      <p className="font-medium">฿{selectedRecord.services.eyeExam.toLocaleString()}</p>
-                                    </div>
-                                    <div>
-                                      <Label>แว่นตา:</Label>
-                                      <p className="font-medium">฿{selectedRecord.services.glasses.toLocaleString()}</p>
-                                    </div>
-                                    <div>
-                                      <Label>คอนแทคเลนส์:</Label>
-                                      <p className="font-medium">฿{selectedRecord.services.contactLens.toLocaleString()}</p>
-                                    </div>
-                                    <div>
-                                      <Label>ผ่าตัด/รักษา:</Label>
-                                      <p className="font-medium">฿{selectedRecord.services.surgery.toLocaleString()}</p>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="border-t pt-4">
-                                  <div className="flex justify-between text-sm mb-2">
-                                    <span>ความสำเร็จ</span>
-                                    <span className="font-medium">{selectedRecord.achievement.toFixed(1)}%</span>
-                                  </div>
-                                  <Progress value={Math.min(selectedRecord.achievement, 100)} className="h-3" />
-                                </div>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-
+                      <div>
                         <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4 mr-1" />
-                          แก้ไข
+                          <Calendar className="h-4 w-4 mr-1" />
+                          ดูรายละเอียด
                         </Button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-
-              {filteredRecords.length === 0 && (
-                <div className="text-center py-12">
-                  <DollarSign className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="font-medium text-gray-900 mb-2">ยังไม่มีข้อมูลรายได้</h3>
-                  <p className="text-gray-500 mb-6">เริ่มต้นโดยการบันทึกรายได้ของสาขา</p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    บันทึกรายได้แรก
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
