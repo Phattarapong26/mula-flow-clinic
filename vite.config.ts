@@ -1,30 +1,31 @@
 
-import path from "path"
-import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
 
-export default defineConfig({
-  server: {
-    host: "::",
-    port: 8080,
-  },
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
     },
   },
   build: {
-    sourcemap: false,
+    sourcemap: false, // Disable sourcemaps for security
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: true, // Remove console.log in production
         drop_debugger: true,
       },
     },
   },
-  define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
   },
-})
+  server: {
+    port: 8080,
+    strictPort: true,
+    host: true,
+  },
+}));

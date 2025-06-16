@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import SecureInput from '@/components/security/SecureInput';
 import { useForm } from '@/hooks/useForm';
 import { httpClient } from '@/utils/httpClient';
-import { FileText, AlertCircle } from 'lucide-react';
+import { FileText, AlertCircle, Users, Stethoscope } from 'lucide-react';
 import { z } from 'zod';
 
 const claimCreateSchema = z.object({
@@ -47,7 +47,6 @@ const StaffClaimCreate = () => {
           title: 'สำเร็จ',
           description: 'สร้างเคลมประกันเรียบร้อยแล้ว'
         });
-        // Reset form or redirect
       } catch (error) {
         toast({
           title: 'เกิดข้อผิดพลาด',
@@ -66,8 +65,7 @@ const StaffClaimCreate = () => {
   const loadCustomers = async () => {
     try {
       const response = await httpClient.get<{ id: string; name: string }[]>('/api/customers');
-      // Fix: Handle direct array response properly
-      setCustomers(Array.isArray(response.data) ? response.data : []);
+      setCustomers(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error('Failed to load customers:', error);
     }
@@ -76,8 +74,7 @@ const StaffClaimCreate = () => {
   const loadServices = async () => {
     try {
       const response = await httpClient.get<{ id: string; name: string; price: number }[]>('/api/services');
-      // Fix: Handle direct array response properly
-      setServices(Array.isArray(response.data) ? response.data : []);
+      setServices(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error('Failed to load services:', error);
     }
@@ -91,7 +88,7 @@ const StaffClaimCreate = () => {
     }
   };
 
-  if (customers.length === 0 || services.length === 0) {
+  if (customers.length === 0 && services.length === 0) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
@@ -102,6 +99,42 @@ const StaffClaimCreate = () => {
             </h3>
             <p className="text-gray-500">
               กรุณารอสักครู่...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (customers.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              ไม่พบข้อมูลผู้ป่วย
+            </h3>
+            <p className="text-gray-500">
+              กรุณาเพิ่มข้อมูลผู้ป่วยก่อนสร้างเคลม
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (services.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Stethoscope className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              ไม่พบข้อมูลบริการ
+            </h3>
+            <p className="text-gray-500">
+              กรุณาเพิ่มข้อมูลบริการก่อนสร้างเคลม
             </p>
           </div>
         </div>

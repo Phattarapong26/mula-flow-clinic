@@ -1,25 +1,21 @@
 
 export const config = {
   api: {
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-    timeout: 30000,
+    baseURL: process.env.REACT_APP_API_URL || '/api',
+    timeout: 10000,
   },
   security: {
-    enableCSP: true,
     sanitizeResponses: true,
-    requireAuth: true,
+    enableCSP: true,
+    jwtExpiration: 3600000, // 1 hour
   },
   errors: {
-    default: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
-    network: 'เชื่อมต่อเครือข่ายไม่ได้ กรุณาตรวจสอบการเชื่อมต่อ',
-    unauthorized: 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้',
-    validation: 'ข้อมูลที่กรอกไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง',
-    server: 'เซิร์ฟเวอร์ขัดข้อง กรุณาติดต่อผู้ดูแลระบบ',
+    default: 'เกิดข้อผิดพลาดที่ไม่คาดคิด',
+    network: 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+    unauthorized: 'ไม่มีสิทธิ์เข้าถึง',
+    server: 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์',
+    validation: 'ข้อมูลไม่ถูกต้อง',
   },
-  pagination: {
-    defaultLimit: 20,
-    maxLimit: 100,
-  },
-};
+} as const;
 
 export default config;

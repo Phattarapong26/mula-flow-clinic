@@ -2,7 +2,7 @@
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { config } from '@/config/app';
 import { security } from './security';
-import { getAuthToken } from './auth';
+import { getAuthToken, isTokenExpired, clearAuthToken } from './auth';
 
 export interface RequestOptions extends AxiosRequestConfig {
   params?: Record<string, any>;
@@ -23,8 +23,12 @@ class HttpClient {
     };
 
     const token = getAuthToken();
-    if (token) {
+    if (token && !isTokenExpired(token)) {
       headers.Authorization = `Bearer ${token}`;
+    } else if (token && isTokenExpired(token)) {
+      clearAuthToken();
+      window.location.href = '/login';
+      throw new Error('Session expired');
     }
 
     return headers;
@@ -38,21 +42,34 @@ class HttpClient {
   }
 
   private handleError(error: any): never {
+    // Don't expose raw backend errors
     if (error.response?.status === 401) {
-      throw new Error(config.errors.unauthorized);
+      clearAuthToken();
+      window.location.href = '/login';
+      throw new Error('ไม่มีสิทธิ์เข้าถึง กรุณาเข้าสู่ระบบใหม่');
+    }
+    if (error.response?.status === 403) {
+      throw new Error('ไม่มีสิทธิ์ในการดำเนินการนี้');
     }
     if (error.response?.status >= 500) {
-      throw new Error(config.errors.server);
+      throw new Error('เกิดข้อผิดพลาดจากระบบ กรุณาลองใหม่อีกครั้ง');
     }
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-      throw new Error(config.errors.network);
+      throw new Error('การเชื่อมต่อใช้เวลานานเกินไป');
     }
-    throw new Error(error.response?.data?.message || config.errors.default);
+    
+    // Generic error for any other cases
+    throw new Error('เกิดข้อผิดพลาดที่ไม่คาดคิด');
+  }
+
+  private validatePath(url: string): string {
+    return security.validateApiPath(url);
   }
 
   async get<T>(url: string, options?: RequestOptions): Promise<T> {
     try {
-      const response = await axios.get<T>(url, {
+      const validatedUrl = this.validatePath(url);
+      const response = await axios.get<T>(validatedUrl, {
         baseURL: this.baseURL,
         timeout: this.timeout,
         headers: this.getHeaders(),
@@ -67,7 +84,9 @@ class HttpClient {
 
   async post<T>(url: string, data?: any, options?: RequestOptions): Promise<T> {
     try {
-      const response = await axios.post<T>(url, data, {
+      const validatedUrl = this.validatePath(url);
+      const sanitizedData = security.sanitizeSensitiveData(data);
+      const response = await axios.post<T>(validatedUrl, sanitizedData, {
         baseURL: this.baseURL,
         timeout: this.timeout,
         headers: this.getHeaders(),
@@ -81,7 +100,9 @@ class HttpClient {
 
   async put<T>(url: string, data?: any, options?: RequestOptions): Promise<T> {
     try {
-      const response = await axios.put<T>(url, data, {
+      const validatedUrl = this.validatePath(url);
+      const sanitizedData = security.sanitizeSensitiveData(data);
+      const response = await axios.put<T>(validatedUrl, sanitizedData, {
         baseURL: this.baseURL,
         timeout: this.timeout,
         headers: this.getHeaders(),
@@ -95,7 +116,9 @@ class HttpClient {
 
   async patch<T>(url: string, data?: any, options?: RequestOptions): Promise<T> {
     try {
-      const response = await axios.patch<T>(url, data, {
+      const validatedUrl = this.validatePath(url);
+      const sanitizedData = security.sanitizeSensitiveData(data);
+      const response = await axios.patch<T>(validatedUrl, sanitizedData, {
         baseURL: this.baseURL,
         timeout: this.timeout,
         headers: this.getHeaders(),
@@ -109,7 +132,8 @@ class HttpClient {
 
   async delete<T>(url: string, options?: RequestOptions): Promise<T> {
     try {
-      const response = await axios.delete<T>(url, {
+      const validatedUrl = this.validatePath(url);
+      const response = await axios.delete<T>(validatedUrl, {
         baseURL: this.baseURL,
         timeout: this.timeout,
         headers: this.getHeaders(),

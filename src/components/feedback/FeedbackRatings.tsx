@@ -1,9 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { httpClient } from '@/utils/httpClient';
-import { Star, TrendingUp, MessageSquare, ThumbsUp, AlertCircle } from 'lucide-react';
+import { Star, TrendingUp, MessageSquare, ThumbsUp, AlertCircle, Building2 } from 'lucide-react';
 
 interface FeedbackRating {
   id: string;
@@ -22,7 +21,6 @@ interface RatingStats {
 }
 
 const FeedbackRatings = () => {
-  const { toast } = useToast();
   const [ratings, setRatings] = useState<FeedbackRating[]>([]);
   const [stats, setStats] = useState<RatingStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,8 +36,7 @@ const FeedbackRatings = () => {
   const loadBranches = async () => {
     try {
       const response = await httpClient.get<{ id: string; name: string }[]>('/api/branches');
-      // Fix: Handle direct array response properly
-      setBranches(Array.isArray(response.data) ? response.data : []);
+      setBranches(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error('Failed to load branches:', error);
     }
@@ -50,15 +47,9 @@ const FeedbackRatings = () => {
       setLoading(true);
       const params = selectedBranch !== 'all' ? { branchId: selectedBranch } : {};
       const response = await httpClient.get<FeedbackRating[]>('/api/feedback/ratings', { params });
-      // Fix: Handle direct array response properly
-      setRatings(Array.isArray(response.data) ? response.data : []);
+      setRatings(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error('Failed to load ratings:', error);
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดข้อมูลคะแนนรีวิวได้',
-        variant: 'destructive'
-      });
     } finally {
       setLoading(false);
     }
@@ -68,8 +59,7 @@ const FeedbackRatings = () => {
     try {
       const params = selectedBranch !== 'all' ? { branchId: selectedBranch } : {};
       const response = await httpClient.get<RatingStats>('/api/feedback/stats', { params });
-      // Fix: Handle direct object response properly
-      setStats(response.data || response);
+      setStats(response || null);
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
@@ -97,6 +87,24 @@ const FeedbackRatings = () => {
             </h3>
             <p className="text-gray-500">
               กรุณารอสักครู่...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (branches.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Building2 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              ไม่พบข้อมูลสาขา
+            </h3>
+            <p className="text-gray-500">
+              กรุณาเพิ่มข้อมูลสาขาก่อนดูคะแนนรีวิว
             </p>
           </div>
         </div>
